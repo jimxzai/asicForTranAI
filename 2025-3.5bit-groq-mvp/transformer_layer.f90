@@ -254,7 +254,7 @@ contains
         real(real32) :: v_flat(seq_len, NUM_KV_HEADS * HEAD_DIM)
 
         ! Attention scores and output
-        real(real32) :: scores(seq_len, seq_len, NUM_HEADS)
+        real(real32), allocatable :: scores(:,:,:)  ! Dynamic: (seq_len, total_seq_len, NUM_HEADS)
         real(real32) :: attn_out(seq_len, NUM_HEADS, HEAD_DIM)
 
         integer(int32) :: i, j, h, kv_h, d, total_seq_len, cache_start
@@ -324,11 +324,11 @@ contains
             end do
         end if
 
-        ! 3. Compute attention scores: Q @ K^T / sqrt(head_dim)
-        scale_factor = 1.0 / sqrt(real(HEAD_DIM, real32))
-
-        ! Determine total sequence length including cache
+        ! 3. Determine total sequence length including cache and allocate scores
         total_seq_len = layer%cache_pos + seq_len
+        allocate(scores(seq_len, total_seq_len, NUM_HEADS))
+
+        scale_factor = 1.0 / sqrt(real(HEAD_DIM, real32))
 
         ! 4. Grouped-Query Attention: Each KV head serves 8 query heads
         ! Groups: NUM_HEADS / NUM_KV_HEADS = 64 / 8 = 8 query heads per KV head
@@ -341,7 +341,7 @@ contains
             do i = 1, seq_len
                 do j = 1, total_seq_len
                     ! Dot product: Q[i, h, :] @ K[j, kv_h, :]
-                    scores(i, min(j, seq_len), h) = 0.0
+                    scores(i, j, h) = 0.0
                     do d = 1, HEAD_DIM
                         ! Fetch K from cache if j <= cache_pos, else from current k array
                         if (j <= layer%cache_pos .and. allocated(layer%k_cache)) then
@@ -349,22 +349,21 @@ contains
                         else
                             k_current = k(j - layer%cache_pos, kv_h, d)
                         end if
-                        scores(i, min(j, seq_len), h) = scores(i, min(j, seq_len), h) + &
-                            q(i, h, d) * k_current
+                        scores(i, j, h) = scores(i, j, h) + q(i, h, d) * k_current
                     end do
-                    scores(i, min(j, seq_len), h) = scores(i, min(j, seq_len), h) * scale_factor
+                    scores(i, j, h) = scores(i, j, h) * scale_factor
 
                     ! Apply causal mask (can't attend to future positions)
                     ! Current absolute position is cache_pos + i
                     if (j > layer%cache_pos + i) then
-                        scores(i, min(j, seq_len), h) = -1.0e9  ! Large negative = ~0 after softmax
+                        scores(i, j, h) = -1.0e9  ! Large negative = ~0 after softmax
                     end if
                 end do
 
-                ! 5. Apply softmax over sequence dimension
+                ! 5. Apply softmax over all attended positions [1:total_seq_len]
                 max_score = maxval(scores(i, :, h))
                 sum_exp = 0.0
-                do j = 1, seq_len
+                do j = 1, total_seq_len
                     scores(i, j, h) = exp(scores(i, j, h) - max_score)
                     sum_exp = sum_exp + scores(i, j, h)
                 end do

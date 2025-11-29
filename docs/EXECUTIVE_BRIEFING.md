@@ -129,10 +129,11 @@ Current LLM inference has three critical limitations:
 
 ### Future Funding Needs
 
-**2026 Budget**: $250k-$425k
-- Personnel: $150k-$250k (verification engineer, writer, contractors)
-- Infrastructure: $50k-$100k (ASIC access, compute)
-- Operations: $50k-$75k (travel, marketing, legal)
+**2026 Budget**: $550k-$650k (updated with Ada/SPARK integration)
+- Personnel: $430k ($150k Ada/SPARK contractor Q1, $180k verification engineer, $100k certification consultant)
+- Infrastructure: $50k-$100k (ASIC access, Groq/Cerebras, compute)
+- Tools: $30k (GNAT Pro license, SPARK Pro, DO-178C templates, hardware)
+- Operations: $40k-$90k (travel, aerospace partnerships, legal, marketing)
 
 **Potential Sources**:
 - ✅ NSF SBIR/STTR: $50k-$250k (no dilution)
@@ -167,13 +168,21 @@ Current LLM inference has three critical limitations:
 
 ### Q1 2026 Deliverables
 
+**Technical:**
 - 405B model @ 3.5-bit (< 60GB)
 - Cerebras CS-4 deployment
-- SPARK verification 100% complete
+- **Ada/SPARK safety layer integration** (Fortran-Ada FFI bridge)
+- SPARK contracts on critical paths
 - Lean 4 quantization proofs
-- ArXiv preprint published
+
+**Academic:**
+- ArXiv preprint: "Formally Verified 3.5-bit Inference: Fortran+Ada+Lean"
 - NeurIPS 2026 submission
-- 3+ ASIC vendor partnerships
+
+**Business:**
+- 3+ ASIC vendor partnerships (Groq, Cerebras, Tenstorrent)
+- 1+ aerospace partnership LOI (Boeing, Lockheed, NASA)
+- DO-178C gap analysis initiated
 
 ---
 
@@ -239,10 +248,19 @@ Current LLM inference has three critical limitations:
 
 ### Future Team (2026+)
 
-- **Verification Engineer** (Q1 2026): SPARK/Lean expert
-- **Technical Writer** (Q1 2026): Documentation & tutorials
-- **ASIC Integration Engineers** (Q2 2026): Cerebras, Tenstorrent support
-- **Advisory Board** (2026-2027): Aerospace, automotive, academic experts
+**Q1 2026 Hires:**
+- **Ada/SPARK Engineer** (contractor, $150k/3 months): Fortran-Ada FFI design, SPARK contract development
+- **Verification Engineer** (full-time, $180k/year): SPARK+Lean proofs, verification report authoring
+
+**Q2-Q4 2026 Hires:**
+- **Certification Consultant** (contractor, $100k): DO-178C gap analysis, DER coordination, FAA submission
+- **Technical Writer** (part-time, $75k/year): Documentation, tutorials, academic publications
+- **ASIC Integration Engineers** (Q3 2026): Cerebras CS-4, Tenstorrent Wormhole deployment
+
+**Advisory Board** (2026-2027):
+- Aerospace: Boeing, Lockheed Martin (DO-178C expertise)
+- Academia: Formal verification experts (AdaCore, SPARK community)
+- Safety-critical: Automotive (ISO 26262), medical (FDA compliance)
 
 ---
 
