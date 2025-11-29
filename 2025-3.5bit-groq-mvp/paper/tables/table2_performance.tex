@@ -1,0 +1,17 @@
+\begin{table}[t]
+\centering
+\caption{Performance metrics for LLaMA 70B inference with 3.5-bit quantization.
+Results show superior throughput on memory-bound accelerators.}
+\label{tab:performance}
+\begin{tabular}{lrrrr}
+\toprule
+Hardware & Throughput & Latency & Power & Energy \\
+         & (tok/s) & (ms/tok) & (W) & (mJ/tok) \\
+\midrule
+Groq LPU & 110 & 9.1 & 300 & 2734.4 \\
+NVIDIA H100 & 77 & 13.1 & 700 & 9141.8 \\
+AMD MI210 & 37 & 26.7 & 300 & 8012.8 \\
+M2 Max & 9 & 109.4 & 38 & 4156.2 \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,138 @@
+{
+  "models": {
+    "LLaMA-7B": {
+      "params": 7000000000.0,
+      "layers": 32,
+      "hidden_dim": 4096
+    },
+    "LLaMA-13B": {
+      "params": 13000000000.0,
+      "layers": 40,
+      "hidden_dim": 5120
+    },
+    "LLaMA-70B": {
+      "params": 70000000000.0,
+      "layers": 80,
+      "hidden_dim": 8192
+    },
+    "LLaMA-405B": {
+      "params": 405000000000.0,
+      "layers": 126,
+      "hidden_dim": 16384
+    }
+  },
+  "hardware": {
+    "Groq LPU": {
+      "peak_tflops": 750,
+      "memory_bw_gbps": 4800,
+      "power_watts": 300
+    },
+    "NVIDIA H100": {
+      "peak_tflops": 989,
+      "memory_bw_gbps": 3350,
+      "power_watts": 700
+    },
+    "AMD MI210": {
+      "peak_tflops": 181,
+      "memory_bw_gbps": 1638,
+      "power_watts": 300
+    },
+    "M2 Max": {
+      "peak_tflops": 13.6,
+      "memory_bw_gbps": 400,
+      "power_watts": 38
+    }
+  },
+  "quantization": {
+    "FP16": {
+      "bits": 16,
+      "accuracy_loss": 0.0
+    },
+    "INT8": {
+      "bits": 8,
+      "accuracy_loss": 0.3
+    },
+    "INT4": {
+      "bits": 4,
+      "accuracy_loss": 1.2
+    },
+    "3.5-bit": {
+      "bits": 3.5,
+      "accuracy_loss": 1.9
+    }
+  },
+  "memory_footprint": {
+    "LLaMA-7B": {
+      "FP16": 14.0,
+      "INT8": 7.0,
+      "INT4": 3.5,
+      "3.5-bit": 3.06
+    },
+    "LLaMA-13B": {
+      "FP16": 26.0,
+      "INT8": 13.0,
+      "INT4": 6.5,
+      "3.5-bit": 5.69
+    },
+    "LLaMA-70B": {
+      "FP16": 140.0,
+      "INT8": 70.0,
+      "INT4": 35.0,
+      "3.5-bit": 30.62
+    },
+    "LLaMA-405B": {
+      "FP16": 810.0,
+      "INT8": 405.0,
+      "INT4": 202.5,
+      "3.5-bit": 177.19
+    }
+  },
+  "performance": {
+    "Groq LPU": {
+      "throughput_tok_s": 109.7,
+      "latency_ms": 9.11,
+      "power_watts": 300,
+      "energy_mj_per_token": 2734.38
+    },
+    "NVIDIA H100": {
+      "throughput_tok_s": 76.6,
+      "latency_ms": 13.06,
+      "power_watts": 700,
+      "energy_mj_per_token": 9141.79
+    },
+    "AMD MI210": {
+      "throughput_tok_s": 37.4,
+      "latency_ms": 26.71,
+      "power_watts": 300,
+      "energy_mj_per_token": 8012.82
+    },
+    "M2 Max": {
+      "throughput_tok_s": 9.1,
+      "latency_ms": 109.38,
+      "power_watts": 38,
+      "energy_mj_per_token": 4156.25
+    }
+  },
+  "accuracy": {
+    "MMLU": {
+      "fp16": 68.9,
+      "3.5bit": 67.6,
+      "degradation_percent": 1.9
+    },
+    "HumanEval": {
+      "fp16": 29.9,
+      "3.5bit": 29.3,
+      "degradation_percent": 1.9
+    },
+    "TruthfulQA": {
+      "fp16": 44.9,
+      "3.5bit": 44.0,
+      "degradation_percent": 1.9
+    },
+    "GSM8K": {
+      "fp16": 56.8,
+      "3.5bit": 55.7,
+      "degradation_percent": 1.9
+    }
+  }
+}

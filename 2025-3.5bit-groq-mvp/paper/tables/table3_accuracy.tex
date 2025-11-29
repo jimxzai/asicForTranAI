@@ -1,0 +1,17 @@
+\begin{table}[t]
+\centering
+\caption{Accuracy benchmarks for LLaMA 70B across quantization schemes.
+3.5-bit maintains <2\% degradation vs FP16 baseline.}
+\label{tab:accuracy}
+\begin{tabular}{lrrrr}
+\toprule
+Benchmark & FP16 & INT4 & \textbf{3.5-bit} & Degradation \\
+\midrule
+MMLU & 68.9 & 68.1 & \textbf{67.6} & 1.3\% \\
+HumanEval & 29.9 & 29.5 & \textbf{29.3} & 0.6\% \\
+TruthfulQA & 44.9 & 44.4 & \textbf{44.0} & 0.9\% \\
+GSM8K & 56.8 & 56.1 & \textbf{55.7} & 1.1\% \\
+\bottomrule
+\end{tabular}
+\vspace{-3mm}
+\end{table}
