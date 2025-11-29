@@ -38,7 +38,7 @@ Your professional project website is now complete with:
 
 ### Step 1: Add Your GitHub Username
 
-Before publishing, replace `YOUR_USERNAME` with your actual GitHub username in:
+Before publishing, replace `jimxzai` with your actual GitHub username in:
 - `README.md` (lines 3, 11)
 - `docs/index.html` (line 207-209)
 - `docs/_config.yml` (lines 7-8)
@@ -47,7 +47,7 @@ Before publishing, replace `YOUR_USERNAME` with your actual GitHub username in:
 **Quick Replace (macOS/Linux):**
 ```bash
 cd /Users/jimxiao/ai/asicForTranAI
-find . -type f \( -name "*.html" -o -name "*.md" -o -name "*.yml" \) -exec sed -i '' 's/YOUR_USERNAME/jimxiao/g' {} +
+find . -type f \( -name "*.html" -o -name "*.md" -o -name "*.yml" \) -exec sed -i '' 's/jimxzai/jimxiao/g' {} +
 ```
 
 ### Step 2: Commit and Push
@@ -69,7 +69,7 @@ git push origin main
 
 ### Step 3: Enable GitHub Pages
 
-1. Go to: `https://github.com/YOUR_USERNAME/asicForTranAI/settings/pages`
+1. Go to: `https://github.com/jimxzai/asicForTranAI/settings/pages`
 2. Under "Build and deployment":
    - Source: **Deploy from a branch**
    - Branch: **main**
@@ -81,7 +81,7 @@ git push origin main
 
 Your website will be live at:
 ```
-https://YOUR_USERNAME.github.io/asicForTranAI/
+https://jimxzai.github.io/asicForTranAI/
 ```
 
 ---
@@ -140,7 +140,7 @@ Pure Fortran 2023, zero Python overhead, ASIC-native.
 
 35 years from 1990 Fortran award to 2025 AI renaissance.
 
-📖 Read more: https://YOUR_USERNAME.github.io/asicForTranAI/
+📖 Read more: https://jimxzai.github.io/asicForTranAI/
 
 #Fortran #ASIC #LLM #AI #GroqLPU #Quantization
 ```
@@ -208,7 +208,7 @@ You now have:
 To publish right now:
 ```bash
 cd /Users/jimxiao/ai/asicForTranAI
-# Replace YOUR_USERNAME with your GitHub username, then:
+# Replace jimxzai with your GitHub username, then:
 git add .
 git commit -m "🚀 Launch world's first 3.5-bit Fortran ASIC AI website"
 git push origin main

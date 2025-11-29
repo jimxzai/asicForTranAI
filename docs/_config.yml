@@ -4,7 +4,7 @@
 title: "3.5-bit Fortran ASIC AI"
 description: "World's first 3.5-bit dynamic asymmetric quantization for LLM inference in pure Fortran - achieving 4188 tok/s on Groq LPU"
 author: "Jim Xiao & Claude Code (Anthropic)"
-url: "https://YOUR_USERNAME.github.io"
+url: "https://jimxzai.github.io"
 baseurl: "/asicForTranAI"
 
 # Theme
@@ -40,13 +40,13 @@ twitter:
 social:
   name: Jim Xiao
   links:
-    - https://github.com/YOUR_USERNAME
+    - https://github.com/jimxzai
 
 # Analytics (optional)
 # google_analytics: UA-XXXXXXXXX-X
 
 # Repository info
-repository: YOUR_USERNAME/asicForTranAI
+repository: jimxzai/asicForTranAI
 
 # Logo and favicon
 logo: /assets/images/logo.png
@@ -60,4 +60,4 @@ navigation:
   - title: Quick Start
     url: /quickstart/
   - title: GitHub
-    url: https://github.com/YOUR_USERNAME/asicForTranAI
+    url: https://github.com/jimxzai/asicForTranAI

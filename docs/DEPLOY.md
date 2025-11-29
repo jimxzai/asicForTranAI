@@ -26,7 +26,7 @@ git push origin main
 
 ### Step 2: Enable GitHub Pages
 
-1. Go to your repository on GitHub: `https://github.com/YOUR_USERNAME/asicForTranAI`
+1. Go to your repository on GitHub: `https://github.com/jimxzai/asicForTranAI`
 
 2. Click **Settings** (top right)
 
@@ -41,28 +41,28 @@ git push origin main
 
 6. Wait 2-3 minutes for deployment
 
-7. Your site will be live at: `https://YOUR_USERNAME.github.io/asicForTranAI/`
+7. Your site will be live at: `https://jimxzai.github.io/asicForTranAI/`
 
 ### Step 3: Update Links in Files
 
 After deployment, update the placeholder URLs in these files:
 
 1. **README.md** (line 3, 11):
-   - Replace `YOUR_USERNAME` with your actual GitHub username
+   - Replace `jimxzai` with your actual GitHub username
 
 2. **docs/index.html** (line 207-209):
-   - Replace `YOUR_USERNAME` with your GitHub username
+   - Replace `jimxzai` with your GitHub username
 
 3. **docs/_config.yml** (line 7-8):
-   - Replace `YOUR_USERNAME` with your GitHub username
+   - Replace `jimxzai` with your GitHub username
    - Optionally add your Twitter username (line 23)
 
 4. **docs/technical.html** (line 85, 203):
-   - Replace `YOUR_USERNAME` with your GitHub username
+   - Replace `jimxzai` with your GitHub username
 
 ```bash
 # Quick replace (macOS/Linux)
-find . -type f \( -name "*.html" -o -name "*.md" -o -name "*.yml" \) -exec sed -i '' 's/YOUR_USERNAME/your_actual_username/g' {} +
+find . -type f \( -name "*.html" -o -name "*.md" -o -name "*.yml" \) -exec sed -i '' 's/jimxzai/your_actual_username/g' {} +
 
 # Or manually edit each file
 ```
@@ -79,8 +79,8 @@ git push origin main
 
 After deployment, verify:
 
-1. ✅ Homepage loads: `https://YOUR_USERNAME.github.io/asicForTranAI/`
-2. ✅ Technical docs work: `https://YOUR_USERNAME.github.io/asicForTranAI/technical.html`
+1. ✅ Homepage loads: `https://jimxzai.github.io/asicForTranAI/`
+2. ✅ Technical docs work: `https://jimxzai.github.io/asicForTranAI/technical.html`
 3. ✅ All links work correctly
 4. ✅ Code highlighting displays properly
 5. ✅ Mobile responsive (check on phone)
@@ -95,7 +95,7 @@ To use a custom domain like `3p5bit.dev`:
    ```
    Type: CNAME
    Name: www
-   Value: YOUR_USERNAME.github.io
+   Value: jimxzai.github.io
 
    Type: A
    Name: @
@@ -121,7 +121,7 @@ To use a custom domain like `3p5bit.dev`:
 - Check browser console for errors
 
 ### Links broken?
-- Make sure you replaced `YOUR_USERNAME` everywhere
+- Make sure you replaced `jimxzai` everywhere
 - Check that all files are in `/docs` directory
 
 ## Advanced: GitHub Actions (Optional)

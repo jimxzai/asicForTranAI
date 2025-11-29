@@ -32,7 +32,7 @@ Quick version:
 3. Select branch: `main`, folder: `/docs`
 4. Save and wait 2-3 minutes
 
-Your site will be live at: `https://YOUR_USERNAME.github.io/asicForTranAI/`
+Your site will be live at: `https://jimxzai.github.io/asicForTranAI/`
 
 ## Files
 
@@ -44,15 +44,15 @@ Your site will be live at: `https://YOUR_USERNAME.github.io/asicForTranAI/`
 
 ## Customization
 
-Before publishing, replace `YOUR_USERNAME` with your GitHub username in:
-- All HTML files (search for "YOUR_USERNAME")
+Before publishing, replace `jimxzai` with your GitHub username in:
+- All HTML files (search for "jimxzai")
 - `_config.yml`
 - `../README.md`
 
 Quick find & replace:
 ```bash
 cd ..
-find . -type f \( -name "*.html" -o -name "*.md" -o -name "*.yml" \) -exec sed -i '' 's/YOUR_USERNAME/your_username/g' {} +
+find . -type f \( -name "*.html" -o -name "*.md" -o -name "*.yml" \) -exec sed -i '' 's/jimxzai/your_username/g' {} +
 ```
 
 ---

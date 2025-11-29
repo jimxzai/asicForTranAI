@@ -1,6 +1,6 @@
 # asicForTranAI: From 1990 Fortran Award to 2025 Groq ASIC Inference
 
-[![GitHub Pages](https://img.shields.io/badge/docs-live-blue.svg)](https://YOUR_USERNAME.github.io/asicForTranAI/)
+[![GitHub Pages](https://img.shields.io/badge/docs-live-blue.svg)](https://jimxzai.github.io/asicForTranAI/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Fortran](https://img.shields.io/badge/Fortran-2023-purple.svg)](https://fortran-lang.org)
 [![Groq](https://img.shields.io/badge/ASIC-Groq%20LPU-orange.svg)](https://groq.com)
@@ -8,7 +8,7 @@
 > **🏆 World's First 3.5-bit Dynamic Asymmetric Quantization in Pure Fortran**
 > Achieving 4188 tokens/sec on Groq LPU | 70B model in 19GB | 35 years from 1990 award to 2025 ASIC AI
 
-📖 **[Live Website](https://YOUR_USERNAME.github.io/asicForTranAI/)** | 📚 **[Technical Docs](https://YOUR_USERNAME.github.io/asicForTranAI/technical.html)** | 🚀 **[Quick Start](2025-3.5bit-groq-mvp/NEXT_STEPS.md)**
+📖 **[Live Website](https://jimxzai.github.io/asicForTranAI/)** | 📚 **[Technical Docs](https://jimxzai.github.io/asicForTranAI/technical.html)** | 🚀 **[Quick Start](2025-3.5bit-groq-mvp/NEXT_STEPS.md)**
 
 ---
 
