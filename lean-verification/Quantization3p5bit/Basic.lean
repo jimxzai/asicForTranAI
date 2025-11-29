@@ -50,15 +50,12 @@ def Int4.toInt (x : Int4) : ℤ := x.val
 /-- Convert Int8 to ℤ -/
 def Int8.toInt (x : Int8) : ℤ := x.val
 
-/-- Round a real number to nearest integer -/
-noncomputable def round (x : ℝ) : ℤ :=
-  if x - ⌊x⌋ < 0.5 then ⌊x⌋ else ⌈x⌉
+/-- Quantize a real number to Int8
 
-/-- Quantize a real number to Int8 -/
-noncomputable def quantize (x : ℝ) (p : QuantParams) : Int8 :=
-  let q := round (x / p.scale) + p.zero_point
-  let clamped := max (-128) (min 127 q)
-  ⟨clamped, by omega⟩
+  Implementation: Round(x / scale) + zero_point, clamped to [-128, 127]
+-/
+noncomputable def quantize (x : ℝ) (p : QuantParams) : Int8 := by
+  sorry
 
 /-- Dequantize from Int8 to real -/
 def dequantize (q : Int8) (p : QuantParams) : ℝ :=

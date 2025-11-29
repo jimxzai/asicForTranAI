@@ -48,7 +48,8 @@
       "Bash(lake exe cache:*)",
       "Bash(timeout 60 lake build:*)",
       "Bash(lake build:*)",
-      "Bash(lake env:*)"
+      "Bash(lake env:*)",
+      "Bash(make gen-weights:*)"
     ],
     "deny": [],
     "ask": []

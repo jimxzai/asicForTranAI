@@ -25,6 +25,7 @@ TARGET_TEST = test_layer
 TARGET_MODEL_TEST = test_llama_80layers
 TARGET_DEBUG = test_layer_debug
 TARGET_BENCHMARK = bench_optimizations
+TARGET_GEN_WEIGHTS = gen_test_weights
 
 # Default target - build everything
 all: $(TARGET_TEST) $(TARGET_MAIN)
@@ -107,6 +108,21 @@ benchmark-opt: $(TARGET_BENCHMARK)
 	@echo ""
 	./$(TARGET_BENCHMARK)
 
+# Build test weight generator
+$(TARGET_GEN_WEIGHTS): $(CORE_SOURCES) generate_test_weights.f90
+	@echo "Building test weight generator..."
+	$(FC) $(FFLAGS) -o $@ $^
+	@echo "✓ Built: $@"
+
+# Generate test weights
+gen-weights: $(TARGET_GEN_WEIGHTS)
+	@echo ""
+	@echo "Generating random test weights..."
+	@echo "=========================================="
+	./$(TARGET_GEN_WEIGHTS)
+	@echo ""
+	@echo "✓ Test weights generated: test_weights_layer0.bin"
+
 # Quick benchmark (old)
 benchmark: $(TARGET_TEST)
 	@echo "Running benchmarks..."
@@ -125,7 +141,7 @@ lint:
 
 # Clean build artifacts
 clean:
-	rm -f *.o *.mod $(TARGET_MAIN) $(TARGET_TEST) $(TARGET_MODEL_TEST) $(TARGET_DEBUG) test_layer_omp
+	rm -f *.o *.mod $(TARGET_MAIN) $(TARGET_TEST) $(TARGET_MODEL_TEST) $(TARGET_DEBUG) $(TARGET_BENCHMARK) $(TARGET_GEN_WEIGHTS) test_layer_omp test_weights_*.bin
 	@echo "✓ Cleaned build artifacts"
 
 # Clean and rebuild
