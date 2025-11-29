@@ -1,1 +1,1 @@
-Why is Fortran 2023 with 'do concurrent' particularly well-suited for ASIC inference compared to Python or C++?
+Explain quantum computing in simple terms:

@@ -178,17 +178,16 @@ contains
     end subroutine rms_norm
 
     !===========================================================================
-    ! RoPE: Rotary Positional Embeddings
+    ! RoPE: Rotary Positional Embeddings (single tensor version for GQA)
     !===========================================================================
-    pure subroutine apply_rope(q, k, freqs, seq_len, num_heads, head_dim)
+    pure subroutine apply_rope_single(x, freqs, seq_len, num_heads, head_dim)
         integer(int32), intent(in), value :: seq_len, num_heads, head_dim
-        real(real32), intent(inout) :: q(seq_len, num_heads, head_dim)
-        real(real32), intent(inout) :: k(seq_len, num_heads, head_dim)
+        real(real32), intent(inout) :: x(seq_len, num_heads, head_dim)
         real(real32), intent(in) :: freqs(seq_len, head_dim/2)
 
         integer(int32) :: pos, h, d
         real(real32) :: cos_val, sin_val
-        real(real32) :: q_real, q_imag, k_real, k_imag
+        real(real32) :: x_real, x_imag
 
         ! Apply rotation to each head independently
         do concurrent(pos = 1:seq_len, h = 1:num_heads)
@@ -196,20 +195,14 @@ contains
                 cos_val = cos(freqs(pos, d))
                 sin_val = sin(freqs(pos, d))
 
-                ! Query rotation (treat pairs as complex numbers)
-                q_real = q(pos, h, 2*d-1)
-                q_imag = q(pos, h, 2*d)
-                q(pos, h, 2*d-1) = q_real * cos_val - q_imag * sin_val
-                q(pos, h, 2*d)   = q_real * sin_val + q_imag * cos_val
-
-                ! Key rotation
-                k_real = k(pos, h, 2*d-1)
-                k_imag = k(pos, h, 2*d)
-                k(pos, h, 2*d-1) = k_real * cos_val - k_imag * sin_val
-                k(pos, h, 2*d)   = k_real * sin_val + k_imag * cos_val
+                ! Rotation (treat pairs as complex numbers)
+                x_real = x(pos, h, 2*d-1)
+                x_imag = x(pos, h, 2*d)
+                x(pos, h, 2*d-1) = x_real * cos_val - x_imag * sin_val
+                x(pos, h, 2*d)   = x_real * sin_val + x_imag * cos_val
             end do
         end do
-    end subroutine apply_rope
+    end subroutine apply_rope_single
 
     !===========================================================================
     ! SwiGLU Activation: Swish-Gated Linear Unit
@@ -245,21 +238,30 @@ contains
         real(real32), intent(out) :: output(seq_len, HIDDEN_DIM)
         integer(int32), intent(in), value :: seq_len
 
-        ! Buffers for Q, K, V projections
-        real(real32) :: q(seq_len, NUM_HEADS, HEAD_DIM)
-        real(real32) :: k(seq_len, NUM_KV_HEADS, HEAD_DIM)
-        real(real32) :: v(seq_len, NUM_KV_HEADS, HEAD_DIM)
-        real(real32) :: q_flat(seq_len, NUM_HEADS * HEAD_DIM)
-        real(real32) :: k_flat(seq_len, NUM_KV_HEADS * HEAD_DIM)
-        real(real32) :: v_flat(seq_len, NUM_KV_HEADS * HEAD_DIM)
+        ! Buffers for Q, K, V projections (allocatable to avoid stack overflow)
+        real(real32), allocatable :: q(:,:,:)       ! (seq_len, NUM_HEADS, HEAD_DIM)
+        real(real32), allocatable :: k(:,:,:)       ! (seq_len, NUM_KV_HEADS, HEAD_DIM)
+        real(real32), allocatable :: v(:,:,:)       ! (seq_len, NUM_KV_HEADS, HEAD_DIM)
+        real(real32), allocatable :: q_flat(:,:)    ! (seq_len, NUM_HEADS * HEAD_DIM)
+        real(real32), allocatable :: k_flat(:,:)    ! (seq_len, NUM_KV_HEADS * HEAD_DIM)
+        real(real32), allocatable :: v_flat(:,:)    ! (seq_len, NUM_KV_HEADS * HEAD_DIM)
 
         ! Attention scores and output
         real(real32), allocatable :: scores(:,:,:)  ! Dynamic: (seq_len, total_seq_len, NUM_HEADS)
-        real(real32) :: attn_out(seq_len, NUM_HEADS, HEAD_DIM)
+        real(real32), allocatable :: attn_out(:,:,:) ! (seq_len, NUM_HEADS, HEAD_DIM)
 
         integer(int32) :: i, j, h, kv_h, d, total_seq_len, cache_start
         real(real32) :: scale_factor, sum_exp, max_score
         real(real32) :: k_current, v_current  ! For fetching K,V from cache or current
+
+        ! Allocate working arrays on heap to avoid stack overflow
+        allocate(q(seq_len, NUM_HEADS, HEAD_DIM))
+        allocate(k(seq_len, NUM_KV_HEADS, HEAD_DIM))
+        allocate(v(seq_len, NUM_KV_HEADS, HEAD_DIM))
+        allocate(q_flat(seq_len, NUM_HEADS * HEAD_DIM))
+        allocate(k_flat(seq_len, NUM_KV_HEADS * HEAD_DIM))
+        allocate(v_flat(seq_len, NUM_KV_HEADS * HEAD_DIM))
+        allocate(attn_out(seq_len, NUM_HEADS, HEAD_DIM))
 
         ! 1. Compute Q, K, V projections
         if (allocated(layer%wq) .and. allocated(layer%wq_scales)) then
@@ -307,7 +309,10 @@ contains
 
         ! 2. Apply RoPE rotary positional embeddings
         if (allocated(layer%rope_freqs)) then
-            call apply_rope(q, k, layer%rope_freqs, seq_len, NUM_HEADS, HEAD_DIM)
+            ! Apply RoPE to Q (64 heads)
+            call apply_rope_single(q, layer%rope_freqs, seq_len, NUM_HEADS, HEAD_DIM)
+            ! Apply RoPE to K (8 KV heads)
+            call apply_rope_single(k, layer%rope_freqs, seq_len, NUM_KV_HEADS, HEAD_DIM)
         end if
 
         ! 2.5. KV Cache Integration - Store current K,V in cache
@@ -420,8 +425,15 @@ contains
             layer%cache_pos = layer%cache_pos + seq_len
         end if
 
-        ! Clean up
+        ! Clean up all allocated arrays
         if (allocated(scores)) deallocate(scores)
+        if (allocated(q)) deallocate(q)
+        if (allocated(k)) deallocate(k)
+        if (allocated(v)) deallocate(v)
+        if (allocated(q_flat)) deallocate(q_flat)
+        if (allocated(k_flat)) deallocate(k_flat)
+        if (allocated(v_flat)) deallocate(v_flat)
+        if (allocated(attn_out)) deallocate(attn_out)
 
     end subroutine grouped_query_attention
 
@@ -434,12 +446,17 @@ contains
         real(real32), intent(out) :: output(seq_len, HIDDEN_DIM)
         integer(int32), intent(in), value :: seq_len
 
-        real(real32) :: gate_proj(seq_len, INTERMEDIATE_DIM)
-        real(real32) :: up_proj(seq_len, INTERMEDIATE_DIM)
-        real(real32) :: swiglu_out(seq_len, INTERMEDIATE_DIM)
-        real(real32) :: down_out(seq_len, HIDDEN_DIM)
+        ! Allocatable to avoid stack overflow (INTERMEDIATE_DIM = 28672!)
+        real(real32), allocatable :: gate_proj(:,:)   ! (seq_len, INTERMEDIATE_DIM)
+        real(real32), allocatable :: up_proj(:,:)     ! (seq_len, INTERMEDIATE_DIM)
+        real(real32), allocatable :: swiglu_out(:,:)  ! (seq_len, INTERMEDIATE_DIM)
 
         integer(int32) :: i, j, k
+
+        ! Allocate large working arrays on heap
+        allocate(gate_proj(seq_len, INTERMEDIATE_DIM))
+        allocate(up_proj(seq_len, INTERMEDIATE_DIM))
+        allocate(swiglu_out(seq_len, INTERMEDIATE_DIM))
 
         ! 1. Gate projection: [seq_len, HIDDEN_DIM] @ [HIDDEN_DIM, INTERMEDIATE_DIM]
         if (allocated(layer%w_gate) .and. allocated(layer%w_gate_scales)) then
@@ -495,6 +512,11 @@ contains
             end do
         end if
 
+        ! Clean up allocated arrays
+        if (allocated(gate_proj)) deallocate(gate_proj)
+        if (allocated(up_proj)) deallocate(up_proj)
+        if (allocated(swiglu_out)) deallocate(swiglu_out)
+
     end subroutine swiglu_ffn
 
     !===========================================================================
@@ -508,10 +530,17 @@ contains
         real(real32), intent(out) :: output(seq_len, HIDDEN_DIM)
         integer(int32), intent(in), value :: seq_len
 
-        real(real32) :: x_norm(seq_len, HIDDEN_DIM)
-        real(real32) :: attn_out(seq_len, HIDDEN_DIM)
-        real(real32) :: ffn_out(seq_len, HIDDEN_DIM)
-        real(real32) :: residual(seq_len, HIDDEN_DIM)
+        ! Allocatable to avoid stack overflow
+        real(real32), allocatable :: x_norm(:,:)
+        real(real32), allocatable :: attn_out(:,:)
+        real(real32), allocatable :: ffn_out(:,:)
+        real(real32), allocatable :: residual(:,:)
+
+        ! Allocate working arrays
+        allocate(x_norm(seq_len, HIDDEN_DIM))
+        allocate(attn_out(seq_len, HIDDEN_DIM))
+        allocate(ffn_out(seq_len, HIDDEN_DIM))
+        allocate(residual(seq_len, HIDDEN_DIM))
 
         ! First residual connection: Attention
         call rms_norm(x, layer%attn_norm, x_norm, seq_len, HIDDEN_DIM)
@@ -526,6 +555,12 @@ contains
 
         ! Final output with residual
         output = residual + ffn_out
+
+        ! Clean up
+        if (allocated(x_norm)) deallocate(x_norm)
+        if (allocated(attn_out)) deallocate(attn_out)
+        if (allocated(ffn_out)) deallocate(ffn_out)
+        if (allocated(residual)) deallocate(residual)
 
     end subroutine apply_transformer_layer
 

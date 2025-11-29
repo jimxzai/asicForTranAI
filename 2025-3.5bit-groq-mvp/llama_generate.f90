@@ -74,15 +74,21 @@ program llama_generate
     call cpu_time(start_time)
 
     do i = 1, MAX_NEW_TOKENS
-        ! Allocate output logits for current sequence length
-        if (allocated(logits_2d)) deallocate(logits_2d)
-        allocate(logits_2d(total_len, VOCAB_SIZE))
-
-        ! Forward pass through 80 layers
-        call forward_llama(model, token_ids, logits_2d, total_len)
-
-        ! Extract logits for last position (where we sample next token)
-        logits_1d = logits_2d(total_len, :)
+        ! For KV caching: first pass processes all prompt tokens, subsequent passes only new token
+        if (i == 1) then
+            ! First pass: process entire prompt
+            if (allocated(logits_2d)) deallocate(logits_2d)
+            allocate(logits_2d(total_len, VOCAB_SIZE))
+            call forward_llama(model, token_ids, logits_2d, total_len)
+            logits_1d = logits_2d(total_len, :)
+        else
+            ! Subsequent passes: process only the last (newest) token
+            ! KV cache handles attending to all previous tokens
+            if (allocated(logits_2d)) deallocate(logits_2d)
+            allocate(logits_2d(1, VOCAB_SIZE))
+            call forward_llama(model, token_ids(total_len:total_len), logits_2d, 1)
+            logits_1d = logits_2d(1, :)
+        end if
 
         ! Sample next token using temperature + top-p
         if (TEMPERATURE > 0.0) then

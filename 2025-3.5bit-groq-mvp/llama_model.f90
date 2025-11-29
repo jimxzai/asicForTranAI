@@ -108,10 +108,16 @@ contains
         real(real32), intent(out) :: output_logits(:,:)  ! [seq_len, VOCAB_SIZE]
         integer(int32), intent(in), value :: seq_len
 
-        real(real32) :: x(seq_len, HIDDEN_DIM)
-        real(real32) :: layer_out(seq_len, HIDDEN_DIM)
-        real(real32) :: x_norm(seq_len, HIDDEN_DIM)
+        ! Allocatable to avoid stack overflow
+        real(real32), allocatable :: x(:,:)
+        real(real32), allocatable :: layer_out(:,:)
+        real(real32), allocatable :: x_norm(:,:)
         integer(int32) :: i, j, layer_idx
+
+        ! Allocate working arrays
+        allocate(x(seq_len, HIDDEN_DIM))
+        allocate(layer_out(seq_len, HIDDEN_DIM))
+        allocate(x_norm(seq_len, HIDDEN_DIM))
 
         ! 1. Token embedding lookup
         do i = 1, seq_len
@@ -132,6 +138,11 @@ contains
         do concurrent(i = 1:seq_len, j = 1:VOCAB_SIZE)
             output_logits(i,j) = dot_product(x_norm(i,:), model%output_weights(:,j))
         end do
+
+        ! Clean up
+        if (allocated(x)) deallocate(x)
+        if (allocated(layer_out)) deallocate(layer_out)
+        if (allocated(x_norm)) deallocate(x_norm)
 
     end subroutine forward_llama
 
