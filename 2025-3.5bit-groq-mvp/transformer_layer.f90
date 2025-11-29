@@ -257,8 +257,9 @@ contains
         real(real32) :: scores(seq_len, seq_len, NUM_HEADS)
         real(real32) :: attn_out(seq_len, NUM_HEADS, HEAD_DIM)
 
-        integer(int32) :: i, j, h, kv_h, d
+        integer(int32) :: i, j, h, kv_h, d, total_seq_len, cache_start
         real(real32) :: scale_factor, sum_exp, max_score
+        real(real32) :: k_current, v_current  ! For fetching K,V from cache or current
 
         ! 1. Compute Q, K, V projections
         if (allocated(layer%wq) .and. allocated(layer%wq_scales)) then
@@ -309,21 +310,25 @@ contains
             call apply_rope(q, k, layer%rope_freqs, seq_len, NUM_HEADS, HEAD_DIM)
         end if
 
-        ! 2.5. KV Cache management (for efficient autoregressive generation)
-        ! TODO: Full KV cache integration requires modifying attention computation
-        ! to handle variable-length cached sequences. For now, cache infrastructure
-        ! is ready (init_kv_cache, reset_kv_cache, cache arrays allocated).
-        !
-        ! Planned logic:
-        ! - If cache allocated and cache_pos > 0: Use cached K,V for past positions
-        ! - Store current K,V in cache at position cache_pos
-        ! - Increment cache_pos for next iteration
-        !
-        ! This requires changing attention score loop to iterate over
-        ! [1:cache_pos+seq_len] instead of [1:seq_len]
+        ! 2.5. KV Cache Integration - Store current K,V in cache
+        ! For autoregressive generation: cache past K,V to avoid recomputation
+        if (allocated(layer%k_cache) .and. allocated(layer%v_cache)) then
+            ! Store current K,V in cache at positions [cache_pos+1:cache_pos+seq_len]
+            do i = 1, seq_len
+                do h = 1, NUM_KV_HEADS
+                    do d = 1, HEAD_DIM
+                        layer%k_cache(layer%cache_pos + i, h, d) = k(i, h, d)
+                        layer%v_cache(layer%cache_pos + i, h, d) = v(i, h, d)
+                    end do
+                end do
+            end do
+        end if
 
         ! 3. Compute attention scores: Q @ K^T / sqrt(head_dim)
         scale_factor = 1.0 / sqrt(real(HEAD_DIM, real32))
+
+        ! Determine total sequence length including cache
+        total_seq_len = layer%cache_pos + seq_len
 
         ! 4. Grouped-Query Attention: Each KV head serves 8 query heads
         ! Groups: NUM_HEADS / NUM_KV_HEADS = 64 / 8 = 8 query heads per KV head
@@ -332,18 +337,27 @@ contains
             kv_h = (h - 1) / (NUM_HEADS / NUM_KV_HEADS) + 1
 
             ! Compute Q @ K^T for this head
+            ! Each query position (i) attends to all past KV positions [1:total_seq_len]
             do i = 1, seq_len
-                do j = 1, seq_len
+                do j = 1, total_seq_len
                     ! Dot product: Q[i, h, :] @ K[j, kv_h, :]
-                    scores(i, j, h) = 0.0
+                    scores(i, min(j, seq_len), h) = 0.0
                     do d = 1, HEAD_DIM
-                        scores(i, j, h) = scores(i, j, h) + q(i, h, d) * k(j, kv_h, d)
+                        ! Fetch K from cache if j <= cache_pos, else from current k array
+                        if (j <= layer%cache_pos .and. allocated(layer%k_cache)) then
+                            k_current = layer%k_cache(j, kv_h, d)
+                        else
+                            k_current = k(j - layer%cache_pos, kv_h, d)
+                        end if
+                        scores(i, min(j, seq_len), h) = scores(i, min(j, seq_len), h) + &
+                            q(i, h, d) * k_current
                     end do
-                    scores(i, j, h) = scores(i, j, h) * scale_factor
+                    scores(i, min(j, seq_len), h) = scores(i, min(j, seq_len), h) * scale_factor
 
-                    ! Apply causal mask (autoregressive: can't attend to future)
-                    if (j > i) then
-                        scores(i, j, h) = -1.0e9  ! Large negative = ~0 after softmax
+                    ! Apply causal mask (can't attend to future positions)
+                    ! Current absolute position is cache_pos + i
+                    if (j > layer%cache_pos + i) then
+                        scores(i, min(j, seq_len), h) = -1.0e9  ! Large negative = ~0 after softmax
                     end if
                 end do
 

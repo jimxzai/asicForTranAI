@@ -125,7 +125,7 @@ theorem encode_decode_identity (pair : QuantizedPair) :
         have h_n2 := pair.n2.property
         by_cases hn2 : pair.n2.val < 0 <;> omega
       simp only [if_pos hn, h_div, if_pos h_enc.1]
-      simp [add_sub_cancel]
+      simp
     · -- n1 non-negative: encoded and decoded identity
       have h_enc : pair.n1.val ≤ 7 := by omega
       have h_div : ((pair.n1.val) * 8 + (if pair.n2.val < 0 then pair.n2.val + 8 else pair.n2.val)) / 8 = pair.n1.val := by
@@ -145,7 +145,7 @@ theorem encode_decode_identity (pair : QuantizedPair) :
         have h_n1 := pair.n1.property
         by_cases hn1 : pair.n1.val < 0 <;> omega
       simp only [if_pos hn, h_mod, if_pos h_enc.1]
-      simp [sub_add_cancel]
+      simp
     · -- n2 non-negative: encoded and decoded identity
       have h_enc : pair.n2.val ≤ 3 := by omega
       have h_mod : ((if pair.n1.val < 0 then pair.n1.val + 16 else pair.n1.val) * 8 + pair.n2.val) % 8 = pair.n2.val := by
