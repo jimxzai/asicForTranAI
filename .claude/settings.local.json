@@ -19,7 +19,9 @@
       "Bash(make clean:*)",
       "Bash(make test:*)",
       "Bash(ls:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(ssh:*)",
+      "Bash(ssh-keygen:*)"
     ],
     "deny": [],
     "ask": []

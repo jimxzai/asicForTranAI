@@ -39,6 +39,9 @@ program test_transformer_layer
     layer%attn_norm = 1.0
     layer%ffn_norm = 1.0
 
+    ! Initialize RoPE frequency cache (max_seq_len = 2048 for LLaMA)
+    call init_rope_freqs(layer, 2048)
+
     ! Create test input (small random values)
     do i = 1, seq_len
         do j = 1, HIDDEN_DIM
@@ -72,5 +75,6 @@ program test_transformer_layer
     ! Cleanup
     deallocate(x, output)
     deallocate(layer%attn_norm, layer%ffn_norm)
+    if (allocated(layer%rope_freqs)) deallocate(layer%rope_freqs)
 
 end program test_transformer_layer

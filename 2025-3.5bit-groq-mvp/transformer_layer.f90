@@ -13,7 +13,7 @@ module transformer_layer
     implicit none
 
     private
-    public :: TransformerLayer, apply_transformer_layer
+    public :: TransformerLayer, apply_transformer_layer, init_rope_freqs
     public :: HIDDEN_DIM, INTERMEDIATE_DIM, NUM_HEADS, NUM_KV_HEADS, HEAD_DIM
 
     ! LLaMA 70B configuration
@@ -54,6 +54,62 @@ module transformer_layer
     end type TransformerLayer
 
 contains
+
+    !===========================================================================
+    ! Helper: INT4 matmul with automatic dequantization
+    ! Wraps matmul_int4_awq + dequantize_output for convenience
+    !===========================================================================
+    subroutine int4_linear(x, w_q, w_scales, output, M, N, K_dim)
+        integer(int32), intent(in) :: M, N, K_dim
+        real(real32), intent(in) :: x(M, K_dim)
+        integer(int8), intent(in) :: w_q(K_dim/8, N)
+        real(real32), intent(in) :: w_scales(N)
+        real(real32), intent(out) :: output(M, N)
+
+        integer(int8) :: x_int8(M, K_dim)
+        integer(int32) :: accum(M, N)
+        integer(int32) :: i, j
+
+        ! Quantize input to INT8 (simple round for now)
+        ! TODO: Use proper activation quantization
+        do concurrent(i = 1:M, j = 1:K_dim)
+            x_int8(i,j) = int(max(-127.0, min(127.0, x(i,j) * 127.0)), int8)
+        end do
+
+        ! INT4 matrix multiplication
+        call matmul_int4_awq(x_int8, w_q, w_scales, accum, M, N, K_dim)
+
+        ! Dequantize to FP32
+        call dequantize_output(accum, w_scales, output, M, N)
+    end subroutine int4_linear
+
+    !===========================================================================
+    ! Initialize RoPE frequency cache
+    ! Precomputes rotary embedding frequencies for efficient inference
+    !===========================================================================
+    subroutine init_rope_freqs(layer, max_seq_len)
+        type(TransformerLayer), intent(inout) :: layer
+        integer(int32), intent(in) :: max_seq_len
+
+        integer(int32) :: pos, d
+        real(real32) :: theta, freq_base
+
+        ! Allocate frequency cache: [max_seq_len, HEAD_DIM/2]
+        if (.not. allocated(layer%rope_freqs)) then
+            allocate(layer%rope_freqs(max_seq_len, HEAD_DIM/2))
+        end if
+
+        ! RoPE base frequency (standard LLaMA value)
+        freq_base = 10000.0
+
+        ! Compute frequencies for each position and dimension pair
+        do concurrent(pos = 1:max_seq_len, d = 1:HEAD_DIM/2)
+            ! theta = freq_base^(-2*d/HEAD_DIM)
+            theta = freq_base ** (-2.0 * real(d-1, real32) / real(HEAD_DIM, real32))
+            ! freq = position * theta
+            layer%rope_freqs(pos, d) = real(pos-1, real32) * theta
+        end do
+    end subroutine init_rope_freqs
 
     !===========================================================================
     ! RMSNorm: Root Mean Square Layer Normalization
@@ -155,6 +211,9 @@ contains
         real(real32) :: q(seq_len, NUM_HEADS, HEAD_DIM)
         real(real32) :: k(seq_len, NUM_KV_HEADS, HEAD_DIM)
         real(real32) :: v(seq_len, NUM_KV_HEADS, HEAD_DIM)
+        real(real32) :: q_flat(seq_len, NUM_HEADS * HEAD_DIM)
+        real(real32) :: k_flat(seq_len, NUM_KV_HEADS * HEAD_DIM)
+        real(real32) :: v_flat(seq_len, NUM_KV_HEADS * HEAD_DIM)
 
         ! Attention scores and output
         real(real32) :: scores(seq_len, seq_len, NUM_HEADS)
@@ -163,30 +222,127 @@ contains
         integer(int32) :: i, j, h, kv_h, d
         real(real32) :: scale_factor, sum_exp, max_score
 
-        ! TODO: Use matmul_int4_awq for these projections
-        ! For now, placeholder - you'll replace with actual quantized matmul
-        print *, "GQA attention: seq_len=", seq_len
+        ! 1. Compute Q, K, V projections
+        if (allocated(layer%wq) .and. allocated(layer%wq_scales)) then
+            ! Q, K, V projections with INT4 matmul
+            call int4_linear(x_norm, layer%wq, layer%wq_scales, q_flat, &
+                seq_len, NUM_HEADS * HEAD_DIM, HIDDEN_DIM)
+            call int4_linear(x_norm, layer%wk, layer%wk_scales, k_flat, &
+                seq_len, NUM_KV_HEADS * HEAD_DIM, HIDDEN_DIM)
+            call int4_linear(x_norm, layer%wv, layer%wv_scales, v_flat, &
+                seq_len, NUM_KV_HEADS * HEAD_DIM, HIDDEN_DIM)
 
-        ! 1. Project to Q, K, V (simplified - replace with INT4 matmul)
-        ! q = matmul(x_norm, layer%wq)
-        ! k = matmul(x_norm, layer%wk)
-        ! v = matmul(x_norm, layer%wv)
+            ! Reshape to [seq_len, num_heads, head_dim]
+            do i = 1, seq_len
+                do h = 1, NUM_HEADS
+                    do d = 1, HEAD_DIM
+                        q(i, h, d) = q_flat(i, (h-1)*HEAD_DIM + d)
+                    end do
+                end do
+                do h = 1, NUM_KV_HEADS
+                    do d = 1, HEAD_DIM
+                        k(i, h, d) = k_flat(i, (h-1)*HEAD_DIM + d)
+                        v(i, h, d) = v_flat(i, (h-1)*HEAD_DIM + d)
+                    end do
+                end do
+            end do
+        else
+            ! Use test data for development (no weights loaded yet)
+            do i = 1, seq_len
+                do h = 1, NUM_HEADS
+                    do d = 1, HEAD_DIM
+                        q(i, h, d) = x_norm(i, (h-1)*HEAD_DIM + d) / real(NUM_HEADS, real32)
+                    end do
+                end do
+            end do
 
-        ! 2. Apply RoPE (when implemented)
-        ! call apply_rope(q, k, layer%rope_freqs, seq_len, NUM_HEADS, HEAD_DIM)
+            do i = 1, seq_len
+                do h = 1, NUM_KV_HEADS
+                    do d = 1, HEAD_DIM
+                        k(i, h, d) = x_norm(i, (h-1)*HEAD_DIM + d) / real(NUM_KV_HEADS, real32)
+                        v(i, h, d) = x_norm(i, (h-1)*HEAD_DIM + d) / real(NUM_KV_HEADS, real32)
+                    end do
+                end do
+            end do
+        end if
+
+        ! 2. Apply RoPE rotary positional embeddings
+        if (allocated(layer%rope_freqs)) then
+            call apply_rope(q, k, layer%rope_freqs, seq_len, NUM_HEADS, HEAD_DIM)
+        end if
 
         ! 3. Compute attention scores: Q @ K^T / sqrt(head_dim)
         scale_factor = 1.0 / sqrt(real(HEAD_DIM, real32))
 
-        ! 4. Grouped attention: Each KV head serves multiple Q heads
+        ! 4. Grouped-Query Attention: Each KV head serves 8 query heads
         ! Groups: NUM_HEADS / NUM_KV_HEADS = 64 / 8 = 8 query heads per KV head
+        do h = 1, NUM_HEADS
+            ! Map query head to corresponding KV head (8:1 ratio)
+            kv_h = (h - 1) / (NUM_HEADS / NUM_KV_HEADS) + 1
 
-        ! 5. Apply causal mask and softmax
+            ! Compute Q @ K^T for this head
+            do i = 1, seq_len
+                do j = 1, seq_len
+                    ! Dot product: Q[i, h, :] @ K[j, kv_h, :]
+                    scores(i, j, h) = 0.0
+                    do d = 1, HEAD_DIM
+                        scores(i, j, h) = scores(i, j, h) + q(i, h, d) * k(j, kv_h, d)
+                    end do
+                    scores(i, j, h) = scores(i, j, h) * scale_factor
 
-        ! 6. Apply attention to values: scores @ V
+                    ! Apply causal mask (autoregressive: can't attend to future)
+                    if (j > i) then
+                        scores(i, j, h) = -1.0e9  ! Large negative = ~0 after softmax
+                    end if
+                end do
 
-        ! 7. Concatenate heads and project output
-        ! output = matmul(attn_out, layer%wo)
+                ! 5. Apply softmax over sequence dimension
+                max_score = maxval(scores(i, :, h))
+                sum_exp = 0.0
+                do j = 1, seq_len
+                    scores(i, j, h) = exp(scores(i, j, h) - max_score)
+                    sum_exp = sum_exp + scores(i, j, h)
+                end do
+                ! Normalize
+                if (sum_exp > 0.0) then
+                    scores(i, :, h) = scores(i, :, h) / sum_exp
+                end if
+            end do
+        end do
+
+        ! 6. Apply attention to values: attn_weights @ V
+        do h = 1, NUM_HEADS
+            kv_h = (h - 1) / (NUM_HEADS / NUM_KV_HEADS) + 1
+
+            do i = 1, seq_len
+                do d = 1, HEAD_DIM
+                    attn_out(i, h, d) = 0.0
+                    do j = 1, seq_len
+                        attn_out(i, h, d) = attn_out(i, h, d) + &
+                            scores(i, j, h) * v(j, kv_h, d)
+                    end do
+                end do
+            end do
+        end do
+
+        ! 7. Concatenate heads and reshape
+        ! output[i, :] = concat(attn_out[i, 1, :], attn_out[i, 2, :], ..., attn_out[i, 64, :])
+        do i = 1, seq_len
+            do h = 1, NUM_HEADS
+                do d = 1, HEAD_DIM
+                    q_flat(i, (h-1)*HEAD_DIM + d) = attn_out(i, h, d)  ! Reuse q_flat buffer
+                end do
+            end do
+        end do
+
+        ! 8. Output projection: [seq_len, HIDDEN_DIM] @ [HIDDEN_DIM, HIDDEN_DIM]
+        if (allocated(layer%wo) .and. allocated(layer%wo_scales)) then
+            call int4_linear(q_flat(:, 1:HIDDEN_DIM), layer%wo, layer%wo_scales, &
+                output, seq_len, HIDDEN_DIM, HIDDEN_DIM)
+        else
+            ! No output projection - copy concatenated heads directly
+            output(:, :) = q_flat(:, 1:HIDDEN_DIM)
+        end if
 
     end subroutine grouped_query_attention
 
@@ -202,18 +358,64 @@ contains
         real(real32) :: gate_proj(seq_len, INTERMEDIATE_DIM)
         real(real32) :: up_proj(seq_len, INTERMEDIATE_DIM)
         real(real32) :: swiglu_out(seq_len, INTERMEDIATE_DIM)
+        real(real32) :: down_out(seq_len, HIDDEN_DIM)
 
-        ! TODO: Replace with INT4 matmul
-        ! gate_proj = matmul(x_norm, layer%w_gate)
-        ! up_proj = matmul(x_norm, layer%w_up)
+        integer(int32) :: i, j, k
 
-        ! Apply SwiGLU activation
+        ! 1. Gate projection: [seq_len, HIDDEN_DIM] @ [HIDDEN_DIM, INTERMEDIATE_DIM]
+        if (allocated(layer%w_gate) .and. allocated(layer%w_gate_scales)) then
+            call int4_linear(x_norm, layer%w_gate, layer%w_gate_scales, &
+                gate_proj, seq_len, INTERMEDIATE_DIM, HIDDEN_DIM)
+        else
+            ! Test data for development
+            do i = 1, seq_len
+                do j = 1, INTERMEDIATE_DIM
+                    gate_proj(i, j) = 0.0
+                    do k = 1, HIDDEN_DIM
+                        gate_proj(i, j) = gate_proj(i, j) + &
+                            x_norm(i, k) * (0.01 / real(HIDDEN_DIM, real32))
+                    end do
+                end do
+            end do
+        end if
+
+        ! 2. Up projection: [seq_len, HIDDEN_DIM] @ [HIDDEN_DIM, INTERMEDIATE_DIM]
+        if (allocated(layer%w_up) .and. allocated(layer%w_up_scales)) then
+            call int4_linear(x_norm, layer%w_up, layer%w_up_scales, &
+                up_proj, seq_len, INTERMEDIATE_DIM, HIDDEN_DIM)
+        else
+            ! Test data for development
+            do i = 1, seq_len
+                do j = 1, INTERMEDIATE_DIM
+                    up_proj(i, j) = 0.0
+                    do k = 1, HIDDEN_DIM
+                        up_proj(i, j) = up_proj(i, j) + &
+                            x_norm(i, k) * (0.01 / real(HIDDEN_DIM, real32))
+                    end do
+                end do
+            end do
+        end if
+
+        ! 3. Apply SwiGLU activation: swish(gate) * up
         call swiglu(gate_proj, up_proj, swiglu_out, seq_len, INTERMEDIATE_DIM)
 
-        ! Down projection
-        ! output = matmul(swiglu_out, layer%w_down)
+        ! 4. Down projection: [seq_len, INTERMEDIATE_DIM] @ [INTERMEDIATE_DIM, HIDDEN_DIM]
+        if (allocated(layer%w_down) .and. allocated(layer%w_down_scales)) then
+            call int4_linear(swiglu_out, layer%w_down, layer%w_down_scales, &
+                output, seq_len, HIDDEN_DIM, INTERMEDIATE_DIM)
+        else
+            ! Test data for development
+            do i = 1, seq_len
+                do j = 1, HIDDEN_DIM
+                    output(i, j) = 0.0
+                    do k = 1, INTERMEDIATE_DIM
+                        output(i, j) = output(i, j) + &
+                            swiglu_out(i, k) * (0.01 / real(INTERMEDIATE_DIM, real32))
+                    end do
+                end do
+            end do
+        end if
 
-        print *, "FFN: seq_len=", seq_len, "intermediate_dim=", INTERMEDIATE_DIM
     end subroutine swiglu_ffn
 
     !===========================================================================
