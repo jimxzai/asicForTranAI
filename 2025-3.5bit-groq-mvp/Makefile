@@ -10,12 +10,15 @@ OPENMP_FLAGS = -fopenmp
 # Source files
 CORE_SOURCES = matmul_int4_groq.f90 transformer_layer.f90
 WEIGHT_LOADER_SOURCE = weight_loader.f90
+SAMPLING_SOURCE = sampling.f90
 OPTIMIZED_SOURCES = matmul_fully_optimized.f90
+SIMD_SOURCES = matmul_simd_optimized.f90
 MODEL_SOURCES = $(CORE_SOURCES) llama_model.f90
 MAIN_SOURCE = llama70b_int4.f90
 TEST_SOURCE = test_transformer_layer.f90
 TEST_MODEL_SOURCE = test_llama_model.f90
 TEST_WEIGHT_LOADING_SOURCE = test_weight_loading.f90
+TEST_SAMPLING_SOURCE = test_sampling.f90
 BENCHMARK_SOURCE = benchmark_optimizations.f90
 
 # Object files
@@ -26,8 +29,10 @@ TARGET_MAIN = llama_inference
 TARGET_TEST = test_layer
 TARGET_MODEL_TEST = test_llama_80layers
 TARGET_WEIGHT_TEST = test_weights
+TARGET_SAMPLING_TEST = test_sampling
 TARGET_DEBUG = test_layer_debug
 TARGET_BENCHMARK = bench_optimizations
+TARGET_SIMD_BENCHMARK = bench_simd
 TARGET_GEN_WEIGHTS = gen_test_weights
 
 # Default target - build everything
@@ -111,6 +116,20 @@ benchmark-opt: $(TARGET_BENCHMARK)
 	@echo ""
 	./$(TARGET_BENCHMARK)
 
+# Build SIMD benchmark
+$(TARGET_SIMD_BENCHMARK): $(CORE_SOURCES) $(SIMD_SOURCES) $(BENCHMARK_SOURCE)
+	@echo "Building SIMD benchmark with OpenMP..."
+	$(FC) $(FFLAGS) $(OPENMP_FLAGS) -o $@ $^
+	@echo "✓ Built: $@"
+
+# Run SIMD benchmark
+benchmark-simd: $(TARGET_SIMD_BENCHMARK)
+	@echo ""
+	@echo "Running SIMD-optimized benchmark..."
+	@echo "Target: 2.3× speedup with SIMD + OpenMP"
+	@echo ""
+	OMP_NUM_THREADS=4 ./$(TARGET_SIMD_BENCHMARK)
+
 # Build test weight generator
 $(TARGET_GEN_WEIGHTS): $(CORE_SOURCES) generate_test_weights.f90
 	@echo "Building test weight generator..."
@@ -143,6 +162,19 @@ test-weights: $(TARGET_WEIGHT_TEST)
 	fi
 	./$(TARGET_WEIGHT_TEST)
 
+# Build sampling test
+$(TARGET_SAMPLING_TEST): $(SAMPLING_SOURCE) $(TEST_SAMPLING_SOURCE)
+	@echo "Building sampling test..."
+	$(FC) $(FFLAGS) -o $@ $^
+	@echo "✓ Built: $@"
+
+# Test sampling strategies
+test-sampling: $(TARGET_SAMPLING_TEST)
+	@echo ""
+	@echo "Testing sampling strategies..."
+	@echo "=========================================="
+	./$(TARGET_SAMPLING_TEST)
+
 # Quick benchmark (old)
 benchmark: $(TARGET_TEST)
 	@echo "Running benchmarks..."
@@ -161,7 +193,7 @@ lint:
 
 # Clean build artifacts
 clean:
-	rm -f *.o *.mod $(TARGET_MAIN) $(TARGET_TEST) $(TARGET_MODEL_TEST) $(TARGET_WEIGHT_TEST) $(TARGET_DEBUG) $(TARGET_BENCHMARK) $(TARGET_GEN_WEIGHTS) test_layer_omp test_weights_*.bin
+	rm -f *.o *.mod $(TARGET_MAIN) $(TARGET_TEST) $(TARGET_MODEL_TEST) $(TARGET_WEIGHT_TEST) $(TARGET_SAMPLING_TEST) $(TARGET_DEBUG) $(TARGET_BENCHMARK) $(TARGET_SIMD_BENCHMARK) $(TARGET_GEN_WEIGHTS) test_layer_omp test_weights_*.bin
 	@echo "✓ Cleaned build artifacts"
 
 # Clean and rebuild
@@ -200,4 +232,4 @@ deploy:
 # Help
 help: info
 
-.PHONY: all test test-debug benchmark lint clean rebuild info deploy help parallel debug
+.PHONY: all test test-debug test-weights test-sampling benchmark lint clean rebuild info deploy help parallel debug

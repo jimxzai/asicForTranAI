@@ -5,7 +5,7 @@
 program benchmark_optimizations
     use iso_fortran_env, only: int8, int32, int64, real32
     use matmul_int4_groq, only: matmul_int4_awq
-    use matmul_fully_optimized, only: matmul_int4_ultra
+    use matmul_simd_optimized, only: matmul_int4_simd
     implicit none
 
     ! Test configurations
@@ -82,23 +82,23 @@ program benchmark_optimizations
     print *, ''
 
     ! ================================================
-    ! WARMUP: Optimized
+    ! WARMUP: SIMD Optimized
     ! ================================================
-    print *, 'Warming up FULLY OPTIMIZED implementation...'
+    print *, 'Warming up SIMD-OPTIMIZED implementation...'
     do i = 1, NUM_WARMUP
-        call matmul_int4_ultra(A, W_Q, W_scales, C_optimized, M, N, K_dim)
+        call matmul_int4_simd(A, W_Q, W_scales, C_optimized, M, N, K_dim)
     end do
     print *, '  Warmup complete'
     print *, ''
 
     ! ================================================
-    ! BENCHMARK: Optimized
+    ! BENCHMARK: SIMD Optimized
     ! ================================================
-    print *, 'Benchmarking FULLY OPTIMIZED implementation...'
+    print *, 'Benchmarking SIMD-OPTIMIZED implementation (OpenMP + SIMD)...'
     call system_clock(t_start)
 
     do i = 1, NUM_ITERATIONS
-        call matmul_int4_ultra(A, W_Q, W_scales, C_optimized, M, N, K_dim)
+        call matmul_int4_simd(A, W_Q, W_scales, C_optimized, M, N, K_dim)
     end do
 
     call system_clock(t_end)

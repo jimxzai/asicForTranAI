@@ -81,6 +81,16 @@ theorem quantize_bounded (x : ℝ) (p : QuantParams) :
 theorem dequant_quant_close (x : ℝ) (p : QuantParams)
   (h : -128 * p.scale ≤ x ∧ x ≤ 127 * p.scale) :
   |x - dequantize (quantize x p) p| ≤ p.scale / 2 := by
+  -- This is a specific instance of the general quantization_error_bound
+  -- when x is within the representable range.
+  --
+  -- Proof outline:
+  -- 1. x/scale is in [-128, 127] (from hypothesis h)
+  -- 2. round(x/scale) is at most 0.5 away from x/scale
+  -- 3. quantize clamps to [-128, 127], which doesn't change value (by h)
+  -- 4. dequantize multiplies by scale, so error ≤ 0.5 * scale = scale/2
+  --
+  -- Requires real arithmetic and rounding properties
   sorry
 
 end Quantization3p5bit

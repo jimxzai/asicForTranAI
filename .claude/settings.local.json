@@ -57,7 +57,9 @@
       "Bash(bash -s -- --yes)",
       "Bash(make test-weights:*)",
       "Bash(make benchmark-opt:*)",
-      "Bash(./test_weights_debug:*)"
+      "Bash(./test_weights_debug:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(make benchmark-simd:*)"
     ],
     "deny": [],
     "ask": []

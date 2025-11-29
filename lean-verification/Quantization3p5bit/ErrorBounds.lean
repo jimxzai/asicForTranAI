@@ -28,9 +28,12 @@ namespace Quantization3p5bit
 theorem quantization_error_bound (x : ℝ) (p : QuantParams) :
   |x - dequantize (quantize x p) p| ≤ p.scale / 2 := by
   -- Strategy:
-  -- 1. Show that quantize rounds to nearest representable value
-  -- 2. Maximum error is half the distance between representable values
-  -- 3. Distance between values = scale
+  -- 1. quantize rounds x/scale to nearest integer, then clamps to [-128, 127]
+  -- 2. dequantize multiplies back by scale
+  -- 3. Maximum rounding error is 0.5, which becomes scale/2 after scaling
+  --
+  -- This proof requires floor/ceil properties and is left as sorry
+  -- for now. In practice, this is the fundamental quantization error bound.
   sorry
 
 /-- Theorem 2: INT32 accumulation doesn't overflow for LLaMA 70B dimensions -/
@@ -38,10 +41,20 @@ theorem no_int32_overflow (M N K : ℕ) (hK : K ≤ 8192)
   (A : Matrix M K Int8) (W_Q : Matrix K N Int4) :
   ∀ i j, accumulate A W_Q i j < 2^31 := by
   intro i j
+  unfold accumulate
   -- Strategy:
-  -- 1. Max value per multiplication: 127 × 7 = 889
-  -- 2. Max accumulation: 8192 × 889 = 7,282,688
-  -- 3. Show 7,282,688 < 2^31 = 2,147,483,648
+  -- 1. Max value of A element: 127 (from Int8 bounds)
+  -- 2. Max value of W_Q element: 7 (from Int4 bounds: -8 to 7)
+  -- 3. Max product: 127 × 7 = 889
+  -- 4. Max sum over K≤8192 elements: 8192 × 889 = 7,282,688
+  -- 5. Verify: 7,282,688 < 2^31 = 2,147,483,648
+  --
+  -- This requires:
+  -- - Summation bounds
+  -- - Product bounds for bounded integers
+  -- - Arithmetic: 8192 * 889 < 2^31
+  --
+  -- Left as sorry - requires Mathlib sum bounds lemmas
   sorry
 
 end Quantization3p5bit
