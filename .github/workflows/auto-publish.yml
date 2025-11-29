@@ -1,0 +1,14 @@
+name: Weekly Book PDF
+on: { schedule: [{ cron: '0 0 * * 6' }] }  # Every Saturday
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Generate PDF
+      run: |
+        sudo apt install pandoc texlive-latex-base
+        pandoc three-books-ai-annotations/*.md -o weekly-notes.pdf --pdf-engine=pdflatex
+    - name: Commit PDF
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with: { commit_message: "Weekly AI Annotations PDF" }
