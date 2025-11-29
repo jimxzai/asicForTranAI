@@ -1,1 +1,1 @@
-从1990年Fortran并行计算到2025年ASIC推理，这35年计算机体系结构的演进说明了什么？
+Why is Fortran 2023 with 'do concurrent' particularly well-suited for ASIC inference compared to Python or C++?

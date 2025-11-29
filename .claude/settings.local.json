@@ -8,7 +8,12 @@
       "Bash(curl:*)",
       "Bash(python3:*)",
       "Bash(prompt.txt)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(git config:*)",
+      "Bash(./test_api_key.sh:*)"
     ],
     "deny": [],
     "ask": []
