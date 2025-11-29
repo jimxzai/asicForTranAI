@@ -375,15 +375,22 @@ contains
         end do
 
         ! 6. Apply attention to values: attn_weights @ V
+        ! Attend over all positions (cache + current) using cached or current V
         do h = 1, NUM_HEADS
             kv_h = (h - 1) / (NUM_HEADS / NUM_KV_HEADS) + 1
 
             do i = 1, seq_len
                 do d = 1, HEAD_DIM
                     attn_out(i, h, d) = 0.0
-                    do j = 1, seq_len
+                    do j = 1, total_seq_len
+                        ! Fetch V from cache if j <= cache_pos, else from current v array
+                        if (j <= layer%cache_pos .and. allocated(layer%v_cache)) then
+                            v_current = layer%v_cache(j, kv_h, d)
+                        else
+                            v_current = v(j - layer%cache_pos, kv_h, d)
+                        end if
                         attn_out(i, h, d) = attn_out(i, h, d) + &
-                            scores(i, j, h) * v(j, kv_h, d)
+                            scores(i, j, h) * v_current
                     end do
                 end do
             end do
@@ -407,6 +414,14 @@ contains
             ! No output projection - copy concatenated heads directly
             output(:, :) = q_flat(:, 1:HIDDEN_DIM)
         end if
+
+        ! 9. Update cache position for next iteration
+        if (allocated(layer%k_cache) .and. allocated(layer%v_cache)) then
+            layer%cache_pos = layer%cache_pos + seq_len
+        end if
+
+        ! Clean up
+        if (allocated(scores)) deallocate(scores)
 
     end subroutine grouped_query_attention
 

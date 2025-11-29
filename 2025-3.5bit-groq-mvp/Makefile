@@ -15,6 +15,7 @@ OPTIMIZED_SOURCES = matmul_fully_optimized.f90
 SIMD_SOURCES = matmul_simd_optimized.f90
 MODEL_SOURCES = $(CORE_SOURCES) llama_model.f90
 MAIN_SOURCE = llama70b_int4.f90
+GENERATE_SOURCE = llama_generate.f90
 TEST_SOURCE = test_transformer_layer.f90
 TEST_MODEL_SOURCE = test_llama_model.f90
 TEST_WEIGHT_LOADING_SOURCE = test_weight_loading.f90
@@ -26,6 +27,7 @@ CORE_OBJECTS = $(CORE_SOURCES:.f90=.o)
 
 # Targets
 TARGET_MAIN = llama_inference
+TARGET_GENERATE = llama_generate
 TARGET_TEST = test_layer
 TARGET_MODEL_TEST = test_llama_80layers
 TARGET_WEIGHT_TEST = test_weights
@@ -60,6 +62,15 @@ $(TARGET_MAIN): $(CORE_SOURCES) $(MAIN_SOURCE)
 	@echo "Building full LLaMA 70B inference..."
 	$(FC) $(FFLAGS) -o $@ $^
 	@echo "✓ Built: $@"
+
+# End-to-end text generation (complete pipeline)
+$(TARGET_GENERATE): $(MODEL_SOURCES) $(WEIGHT_LOADER_SOURCE) $(SAMPLING_SOURCE) $(GENERATE_SOURCE)
+	@echo "Building LLaMA text generation pipeline..."
+	$(FC) $(FFLAGS) -o $@ $^
+	@echo "✓ Built: $@"
+	@echo ""
+	@echo "Run with: ./$(TARGET_GENERATE)"
+	@echo "Requires: Python 3 + scripts/tokenizer.py"
 
 # OpenMP parallel version (for CPU testing)
 parallel: $(CORE_SOURCES) $(TEST_SOURCE)
@@ -193,7 +204,7 @@ lint:
 
 # Clean build artifacts
 clean:
-	rm -f *.o *.mod $(TARGET_MAIN) $(TARGET_TEST) $(TARGET_MODEL_TEST) $(TARGET_WEIGHT_TEST) $(TARGET_SAMPLING_TEST) $(TARGET_DEBUG) $(TARGET_BENCHMARK) $(TARGET_SIMD_BENCHMARK) $(TARGET_GEN_WEIGHTS) test_layer_omp test_weights_*.bin
+	rm -f *.o *.mod $(TARGET_MAIN) $(TARGET_GENERATE) $(TARGET_TEST) $(TARGET_MODEL_TEST) $(TARGET_WEIGHT_TEST) $(TARGET_SAMPLING_TEST) $(TARGET_DEBUG) $(TARGET_BENCHMARK) $(TARGET_SIMD_BENCHMARK) $(TARGET_GEN_WEIGHTS) test_layer_omp test_weights_*.bin prompt.txt tokens.bin output_tokens.bin output.txt
 	@echo "✓ Cleaned build artifacts"
 
 # Clean and rebuild
