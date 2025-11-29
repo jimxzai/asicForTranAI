@@ -1,0 +1,20 @@
+# Compiled binaries
+llama_generate
+llama_generate_debug
+test_forward
+test_forward_debug
+test_simple
+bench_simd
+
+# Fortran module files
+*.mod
+
+# Debug symbols
+*.dSYM/
+
+# Object files
+*.o
+
+# Temporary files
+*~
+.DS_Store
