@@ -142,23 +142,156 @@ def select_child (nodes : Array MCTSNode) (parent_idx : Nat) (config : MCTSConfi
   match parent with
   | none => none
   | some p =>
-    let children := p.children.filterMap (fun idx => nodes[idx]?)
-    if children.isEmpty then
+    if p.children.isEmpty then
       none
     else
       -- Find child with max UCB score
-      let scored := children.map (fun child =>
-        (child, ucb_score child p.visits config.exploration_c))
-      some 0  -- TODO: Implement argmax
+      let scored := p.children.map (fun idx =>
+        match nodes[idx]? with
+        | none => (idx, 0.0)
+        | some child => (idx, ucb_score child p.visits config.exploration_c))
+      -- argmax: find index with highest score
+      let best := scored.foldl
+        (fun acc (idx, score) =>
+          if score > acc.2 then (idx, score) else acc)
+        (0, 0.0)
+      if best.2 > 0.0 then some best.1 else none
+
+/-- Expand node by trying an untried tactic -/
+def expand_node (nodes : Array MCTSNode) (node_idx : Nat) (policy : PolicyNetwork)
+    : Array MCTSNode :=
+  match nodes[node_idx]? with
+  | none => nodes
+  | some node =>
+    if node.untried_tactics.isEmpty then
+      nodes  -- Already fully expanded
+    else
+      -- Pick highest-ranked untried tactic
+      let tactic_to_try := node.untried_tactics.head!
+      let remaining_tactics := node.untried_tactics.tail!
+
+      -- Simulate applying tactic (simplified: create child state)
+      let child_state : ProofState := {
+        goal := node.state.goal ++ " (after " ++ toString tactic_to_try.tactic ++ ")",
+        hypotheses := node.state.hypotheses,
+        depth := node.state.depth + 1
+      }
+
+      let new_child : MCTSNode := {
+        state := child_state,
+        parent := some node_idx,
+        children := [],
+        visits := 0,
+        value := 0.5,  -- Initial neutral value
+        untried_tactics := policy.predict child_state |>.map Prod.fst
+      }
+
+      -- Add child to nodes array
+      let new_idx := nodes.size
+      let updated_parent : MCTSNode := {
+        node with
+        children := node.children ++ [new_idx],
+        untried_tactics := remaining_tactics
+      }
+
+      nodes.set! node_idx updated_parent |>.push new_child
+
+/-- Simulate (rollout) from a state to estimate value -/
+def simulate (state : ProofState) (config : MCTSConfig) : Float :=
+  -- Simplified: estimate based on depth (deeper = less likely to succeed)
+  let depth_penalty := Float.ofNat state.depth / Float.ofNat config.max_depth
+  1.0 - depth_penalty
+
+/-- Backpropagate result up the tree -/
+def backpropagate (nodes : Array MCTSNode) (leaf_idx : Nat) (value : Float)
+    : Array MCTSNode :=
+  let rec backprop_helper (nodes_acc : Array MCTSNode) (current_idx : Nat) (v : Float)
+      : Array MCTSNode :=
+    match nodes_acc[current_idx]? with
+    | none => nodes_acc
+    | some node =>
+      let updated_node : MCTSNode := {
+        node with
+        visits := node.visits + 1,
+        value := (node.value * Float.ofNat node.visits + v) / Float.ofNat (node.visits + 1)
+      }
+      let new_nodes := nodes_acc.set! current_idx updated_node
+      match node.parent with
+      | none => new_nodes  -- Reached root
+      | some parent_idx => backprop_helper new_nodes parent_idx v
+
+  backprop_helper nodes leaf_idx value
 
 /-- MCTS main loop -/
 partial def mcts_search (initial_state : ProofState) (config : MCTSConfig)
     (policy : PolicyNetwork) : Option (List TacticInvocation) :=
-  sorry  -- TODO: Implement full MCTS
-  -- 1. Selection: Traverse tree via UCB until leaf
-  -- 2. Expansion: Add new node with untried tactic
-  -- 3. Simulation: Rollout to terminal state (or depth limit)
-  -- 4. Backpropagation: Update values along path
+  -- Initialize root node
+  let root : MCTSNode := {
+    state := initial_state,
+    parent := none,
+    children := [],
+    visits := 0,
+    value := 0.5,
+    untried_tactics := policy.predict initial_state |>.map Prod.fst
+  }
+  let initial_nodes := #[root]
+
+  -- MCTS iteration loop
+  let rec mcts_iteration (nodes : Array MCTSNode) (iteration : Nat) : Array MCTSNode :=
+    if iteration >= config.max_iterations then
+      nodes
+    else
+      -- 1. Selection: Start from root, traverse to leaf using UCB
+      let rec select_to_leaf (current_idx : Nat) : Nat :=
+        match nodes[current_idx]? with
+        | none => current_idx
+        | some node =>
+          if node.children.isEmpty || !node.untried_tactics.isEmpty then
+            current_idx  -- Leaf node (expandable or terminal)
+          else
+            match select_child nodes current_idx config with
+            | none => current_idx
+            | some child_idx => select_to_leaf child_idx
+      let leaf_idx := select_to_leaf 0
+
+      -- 2. Expansion: Add new child if not fully expanded
+      let nodes_after_expansion := expand_node nodes leaf_idx policy
+
+      -- 3. Simulation: Rollout from new state
+      let sim_value := match nodes_after_expansion[leaf_idx]? with
+        | none => 0.5
+        | some node => simulate node.state config
+
+      -- 4. Backpropagation: Update values
+      let nodes_after_backprop := backpropagate nodes_after_expansion leaf_idx sim_value
+
+      mcts_iteration nodes_after_backprop (iteration + 1)
+
+  let final_nodes := mcts_iteration initial_nodes 0
+
+  -- Extract best proof path from root
+  let rec extract_path (nodes : Array MCTSNode) (idx : Nat) (acc : List TacticInvocation)
+      : List TacticInvocation :=
+    match nodes[idx]? with
+    | none => acc.reverse
+    | some node =>
+      if node.value > 0.8 && !node.children.isEmpty then
+        -- Follow most-visited child
+        let best_child := node.children.foldl
+          (fun best_idx child_idx =>
+            match nodes[child_idx]?, nodes[best_idx]? with
+            | some child, some best =>
+              if child.visits > best.visits then child_idx else best_idx
+            | _, _ => best_idx)
+          (node.children.head!)
+        -- TODO: Record which tactic led to this child
+        let tactic := ⟨Tactic.sorry, []⟩  -- Placeholder
+        extract_path nodes best_child (tactic :: acc)
+      else
+        acc.reverse
+
+  let proof_tactics := extract_path final_nodes 0 []
+  if proof_tactics.isEmpty then none else some proof_tactics
 
 ---------------------------------------------------------------------------
 -- 6. Integration with Quantization Proofs

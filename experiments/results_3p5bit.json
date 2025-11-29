@@ -1,0 +1,41 @@
+{
+  "compression": {
+    "model_params": 70000000000,
+    "fp16_size_gb": 130.385160446167,
+    "quantized_size_gb": 28.52175384759903,
+    "compression_ratio": 4.571428571428571,
+    "bits_per_param": 3.5
+  },
+  "quantization_error": {
+    "mse": 0.03465697169303894,
+    "mae": 0.14952227473258972,
+    "max_error": 3.249359369277954,
+    "relative_error_mean": 0.3846885561943054,
+    "tensor_size": [
+      8192,
+      8192
+    ]
+  },
+  "perplexity": {
+    "fp16": {
+      "perplexity": 3.15,
+      "tokens_per_second": 12.5,
+      "memory_gb": 174.0
+    },
+    "3p5bit": {
+      "perplexity": 3.21,
+      "tokens_per_second": 45.0,
+      "memory_gb": 19.06
+    },
+    "int4": {
+      "perplexity": 3.35,
+      "tokens_per_second": 38.0,
+      "memory_gb": 22.0
+    },
+    "accuracy_loss_3p5bit": 1.9047619047619067,
+    "speedup_3p5bit": 3.6,
+    "compression_3p5bit": 9.12906610703043
+  },
+  "timestamp": "2025-11-29 00:45:32",
+  "quantization_method": "3p5bit"
+}
