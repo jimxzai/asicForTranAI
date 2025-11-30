@@ -37,37 +37,37 @@ contains
 
         ! Allocate weight arrays if not already allocated
         if (.not. allocated(layer%wq)) then
-            allocate(layer%wq(HIDDEN_DIM/8, NUM_HEADS * HEAD_DIM))
+            allocate(layer%wq(HIDDEN_DIM/2, NUM_HEADS * HEAD_DIM))
             allocate(layer%wq_scales(NUM_HEADS * HEAD_DIM))
         end if
 
         if (.not. allocated(layer%wk)) then
-            allocate(layer%wk(HIDDEN_DIM/8, NUM_KV_HEADS * HEAD_DIM))
+            allocate(layer%wk(HIDDEN_DIM/2, NUM_KV_HEADS * HEAD_DIM))
             allocate(layer%wk_scales(NUM_KV_HEADS * HEAD_DIM))
         end if
 
         if (.not. allocated(layer%wv)) then
-            allocate(layer%wv(HIDDEN_DIM/8, NUM_KV_HEADS * HEAD_DIM))
+            allocate(layer%wv(HIDDEN_DIM/2, NUM_KV_HEADS * HEAD_DIM))
             allocate(layer%wv_scales(NUM_KV_HEADS * HEAD_DIM))
         end if
 
         if (.not. allocated(layer%wo)) then
-            allocate(layer%wo(HIDDEN_DIM/8, HIDDEN_DIM))
+            allocate(layer%wo(HIDDEN_DIM/2, HIDDEN_DIM))
             allocate(layer%wo_scales(HIDDEN_DIM))
         end if
 
         if (.not. allocated(layer%w_gate)) then
-            allocate(layer%w_gate(HIDDEN_DIM/8, INTERMEDIATE_DIM))
+            allocate(layer%w_gate(HIDDEN_DIM/2, INTERMEDIATE_DIM))
             allocate(layer%w_gate_scales(INTERMEDIATE_DIM))
         end if
 
         if (.not. allocated(layer%w_up)) then
-            allocate(layer%w_up(HIDDEN_DIM/8, INTERMEDIATE_DIM))
+            allocate(layer%w_up(HIDDEN_DIM/2, INTERMEDIATE_DIM))
             allocate(layer%w_up_scales(INTERMEDIATE_DIM))
         end if
 
         if (.not. allocated(layer%w_down)) then
-            allocate(layer%w_down(INTERMEDIATE_DIM/8, HIDDEN_DIM))
+            allocate(layer%w_down(INTERMEDIATE_DIM/2, HIDDEN_DIM))
             allocate(layer%w_down_scales(HIDDEN_DIM))
         end if
 

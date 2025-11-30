@@ -23,32 +23,32 @@ program generate_test_weights
 
     ! Allocate Q, K, V projection weights (INT4 packed)
     ! Q: [HIDDEN_DIM, NUM_HEADS * HEAD_DIM] = [8192, 8192]
-    ! Packed to INT4: [8192/8, 8192]
-    allocate(layer%wq(HIDDEN_DIM/8, NUM_HEADS * HEAD_DIM))
+    ! Packed to INT4: [8192/2, 8192] (2 values per byte)
+    allocate(layer%wq(HIDDEN_DIM/2, NUM_HEADS * HEAD_DIM))
     allocate(layer%wq_scales(NUM_HEADS * HEAD_DIM))
 
     ! K: [HIDDEN_DIM, NUM_KV_HEADS * HEAD_DIM] = [8192, 1024]
-    allocate(layer%wk(HIDDEN_DIM/8, NUM_KV_HEADS * HEAD_DIM))
+    allocate(layer%wk(HIDDEN_DIM/2, NUM_KV_HEADS * HEAD_DIM))
     allocate(layer%wk_scales(NUM_KV_HEADS * HEAD_DIM))
 
     ! V: [HIDDEN_DIM, NUM_KV_HEADS * HEAD_DIM] = [8192, 1024]
-    allocate(layer%wv(HIDDEN_DIM/8, NUM_KV_HEADS * HEAD_DIM))
+    allocate(layer%wv(HIDDEN_DIM/2, NUM_KV_HEADS * HEAD_DIM))
     allocate(layer%wv_scales(NUM_KV_HEADS * HEAD_DIM))
 
     ! O: [HIDDEN_DIM, HIDDEN_DIM] = [8192, 8192]
-    allocate(layer%wo(HIDDEN_DIM/8, HIDDEN_DIM))
+    allocate(layer%wo(HIDDEN_DIM/2, HIDDEN_DIM))
     allocate(layer%wo_scales(HIDDEN_DIM))
 
     ! FFN weights
     ! Gate & Up: [HIDDEN_DIM, INTERMEDIATE_DIM] = [8192, 28672]
-    allocate(layer%w_gate(HIDDEN_DIM/8, INTERMEDIATE_DIM))
+    allocate(layer%w_gate(HIDDEN_DIM/2, INTERMEDIATE_DIM))
     allocate(layer%w_gate_scales(INTERMEDIATE_DIM))
 
-    allocate(layer%w_up(HIDDEN_DIM/8, INTERMEDIATE_DIM))
+    allocate(layer%w_up(HIDDEN_DIM/2, INTERMEDIATE_DIM))
     allocate(layer%w_up_scales(INTERMEDIATE_DIM))
 
     ! Down: [INTERMEDIATE_DIM, HIDDEN_DIM] = [28672, 8192]
-    allocate(layer%w_down(INTERMEDIATE_DIM/8, HIDDEN_DIM))
+    allocate(layer%w_down(INTERMEDIATE_DIM/2, HIDDEN_DIM))
     allocate(layer%w_down_scales(HIDDEN_DIM))
 
     print *, "✓ Arrays allocated"

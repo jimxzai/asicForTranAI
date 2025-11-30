@@ -68,7 +68,7 @@ contains
     subroutine int4_linear(x, w_q, w_scales, output, M, N, K_dim)
         integer(int32), intent(in) :: M, N, K_dim
         real(real32), intent(in) :: x(M, K_dim)
-        integer(int8), intent(in) :: w_q(K_dim/8, N)
+        integer(int8), intent(in) :: w_q(K_dim/2, N)
         real(real32), intent(in) :: w_scales(N)
         real(real32), intent(out) :: output(M, N)
 

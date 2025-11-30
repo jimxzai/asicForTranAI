@@ -13,13 +13,13 @@ contains
 
     ! Core 4-bit INT4 matrix multiplication with AWQ quantization
     ! A: Input activations [M, K] in INT8
-    ! W_Q: Quantized weights [K/8, N] packed 4-bit
+    ! W_Q: Quantized weights [K/2, N] packed 4-bit (2 values per byte)
     ! W_scales: Per-column dequantization scales [N]
     ! C: Output accumulator [M, N] in INT32
     pure subroutine matmul_int4_awq(A, W_Q, W_scales, C, M, N, K_dim)
         integer(int32), intent(in) :: M, N, K_dim
         integer(int8), intent(in) :: A(M, K_dim)
-        integer(int8), intent(in) :: W_Q(K_dim/8, N)     ! 4-bit packed (2 values per byte)
+        integer(int8), intent(in) :: W_Q(K_dim/2, N)     ! 4-bit packed (2 values per byte)
         real(real32), intent(in) :: W_scales(N)      ! FP32 scales per column
         integer(int32), intent(out) :: C(M, N)       ! INT32 accumulator
 
