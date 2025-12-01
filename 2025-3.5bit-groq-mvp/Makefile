@@ -228,6 +228,22 @@ info:
 	@echo "  make parallel - Build with OpenMP"
 	@echo "  make clean    - Remove build artifacts"
 	@echo "  make lint     - Check code syntax"
+	@echo "  make benchmark-llama - Run comprehensive performance benchmark"
+
+# Comprehensive LLaMA performance benchmark
+BENCHMARK_LLAMA_SOURCE = benchmark_llama.f90
+TARGET_BENCHMARK_LLAMA = benchmark_llama
+
+$(TARGET_BENCHMARK_LLAMA): $(MODEL_SOURCES) $(BENCHMARK_LLAMA_SOURCE)
+	@echo "Building LLaMA performance benchmark..."
+	$(FC) $(FFLAGS) -o $@ $^
+	@echo "✓ Built: $@"
+
+benchmark-llama: $(TARGET_BENCHMARK_LLAMA)
+	@echo ""
+	@echo "Running LLaMA 70B performance benchmark..."
+	@echo "=========================================="
+	ulimit -s unlimited && ./$(TARGET_BENCHMARK_LLAMA)
 
 # Deploy to Groq (future - when MLIR generation works)
 deploy:
