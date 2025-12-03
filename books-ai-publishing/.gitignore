@@ -1,0 +1,77 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# LaTeX临时文件
+*.aux
+*.log
+*.out
+*.toc
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+
+# 临时文件
+/tmp/
+*.tmp
+*.bak
+*.cache
+
+# 敏感信息
+.env
+*.key
+*.pem
+secrets/
+
+# 大文件（避免Git仓库膨胀）
+*.pdf
+*.epub
+*.mobi
+# 但保留示例文件
+!examples/*.pdf
+
+# NotebookLM导出
+notebooks/*.nbconvert.ipynb
+
+# 构建产物
+books/*.pdf
+books/*.epub
+books/*.mobi
+books/*.tex
+# 但保留源文件
+!books/*.md
+
+# 编辑器配置
+.ropeproject/

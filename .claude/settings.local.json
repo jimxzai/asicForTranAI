@@ -60,7 +60,11 @@
       "Bash(./test_weights_debug:*)",
       "Bash(git check-ignore:*)",
       "Bash(make benchmark-simd:*)",
-      "Bash(make test-sampling:*)"
+      "Bash(make test-sampling:*)",
+      "Bash(make lint:*)",
+      "Bash(make:*)",
+      "Bash(mkdir:*)",
+      "Bash(gh auth:*)"
     ],
     "deny": [],
     "ask": []
