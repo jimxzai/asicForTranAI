@@ -64,7 +64,15 @@
       "Bash(make lint:*)",
       "Bash(make:*)",
       "Bash(mkdir:*)",
-      "Bash(gh auth:*)"
+      "Bash(gh auth:*)",
+      "Bash(ollama:*)",
+      "Bash(if [ -n \"$GROQ_API_KEY\" ])",
+      "Bash(then echo \"✅ GROQ_API_KEY is set ($#GROQ_API_KEY characters)\")",
+      "Bash(else echo \"❌ GROQ_API_KEY not set. Let me check for it...\")",
+      "Bash(fi)",
+      "Bash(python:*)",
+      "Bash(git show:*)",
+      "Bash(awk '{print $9, \"\"\"\"(\"\"\"\" $5 \"\"\"\")\"\"\"\"}')"
     ],
     "deny": [],
     "ask": []
