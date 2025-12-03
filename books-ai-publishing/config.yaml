@@ -1,0 +1,114 @@
+# 三书AI注疏出版系统 - 配置文件
+
+# Claude API配置
+api:
+  model: "claude-sonnet-4-5-20250929"  # 使用Sonnet 4.5
+  max_tokens: 8000
+  temperature: 0.7
+
+# 书籍配置
+books:
+  sunzi:
+    name: "孙子兵法"
+    english_name: "The Art of War"
+    chapters: 13
+    chapters_list:
+      - "01-始计篇"
+      - "02-作战篇"
+      - "03-谋攻篇"
+      - "04-形篇"
+      - "05-势篇"
+      - "06-虚实篇"
+      - "07-军争篇"
+      - "08-九变篇"
+      - "09-行军篇"
+      - "10-地形篇"
+      - "11-九地篇"
+      - "12-火攻篇"
+      - "13-用间篇"
+
+  zizhi:
+    name: "资治通鉴"
+    english_name: "Zizhi Tongjian"
+    chapters: 294
+    # 294卷太多，这里只列举前10卷作为示例
+    chapters_prefix: "卷"  # 卷001, 卷002...
+
+  bible:
+    name: "圣经"
+    english_name: "The Bible"
+    chapters: 1189
+    old_testament_chapters: 929
+    new_testament_chapters: 260
+
+# Agent配置
+agents:
+  agent1:
+    name: "Chief Editor"
+    model: "claude-sonnet-4-5-20250929"
+    max_tokens: 2000
+    temperature: 0.3  # 分类任务用低温度
+
+  agent2:
+    name: "Annotator"
+    model: "claude-sonnet-4-5-20250929"
+    max_tokens: 6000
+    temperature: 0.5
+
+  agent3:
+    name: "AI Strategist"
+    model: "claude-sonnet-4-5-20250929"
+    max_tokens: 6000
+    temperature: 0.7
+
+  agent4:
+    name: "Proofreader"
+    model: "claude-sonnet-4-5-20250929"
+    max_tokens: 4000
+    temperature: 0.3
+
+  agent5:
+    name: "Publisher"
+    model: "claude-sonnet-4-5-20250929"
+    max_tokens: 8000
+    temperature: 0.5
+
+# 自动化配置
+automation:
+  daily_process_time: "23:59"  # 每日处理时间（UTC）
+  weekly_report_time: "Saturday 08:00"
+  quarterly_book_time: "Last day of quarter 23:59"
+
+# 输出格式配置
+output:
+  formats: ["markdown", "pdf", "epub", "latex"]
+  pdf_engine: "xelatex"
+  chinese_font: "Noto Serif CJK SC"
+  english_font: "Times New Roman"
+  code_font: "Source Code Pro"
+
+# NotebookLM配置（如果使用）
+notebooklm:
+  enabled: false  # NotebookLM目前无公开API，设为false
+  # 如果未来有API，可配置：
+  # api_key: "your-notebooklm-api-key"
+  # project_id: "your-project-id"
+
+# 7年计划追踪
+seven_year_plan:
+  start_date: "2025-10-01"
+  end_date: "2032-12-31"
+  total_days: 2520
+  goals:
+    - book: "孙子兵法"
+      target_words: 150000
+      target_date: "2026-12-31"
+    - book: "资治通鉴"
+      target_words: 500000
+      target_date: "2029-12-31"
+    - book: "圣经"
+      target_words: 400000
+      target_date: "2031-12-31"
+    - book: "三书合论"
+      target_words: 200000
+      target_date: "2032-12-31"
