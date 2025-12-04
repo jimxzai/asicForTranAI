@@ -72,7 +72,8 @@
       "Bash(fi)",
       "Bash(python:*)",
       "Bash(git show:*)",
-      "Bash(awk '{print $9, \"\"\"\"(\"\"\"\" $5 \"\"\"\")\"\"\"\"}')"
+      "Bash(awk '{print $9, \"\"\"\"(\"\"\"\" $5 \"\"\"\")\"\"\"\"}')",
+      "Bash(awk:*)"
     ],
     "deny": [],
     "ask": []
