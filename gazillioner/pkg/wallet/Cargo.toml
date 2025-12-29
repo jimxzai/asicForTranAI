@@ -1,0 +1,77 @@
+[package]
+name = "gazillioner-wallet"
+version = "0.1.0"
+edition = "2021"
+authors = ["Gazillioner Inc."]
+description = "BTC/ETH cold storage wallet with BIP32/BIP39 support"
+license = "Proprietary"
+
+[lib]
+name = "gazillioner_wallet"
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[dependencies]
+# BIP39 mnemonic
+bip39 = "2.0"
+
+# BIP32 HD derivation
+bitcoin = { version = "0.32", features = ["secp-recovery"] }
+secp256k1 = { version = "0.29", features = ["rand-std", "recovery", "global-context"] }
+
+# Ethereum support
+ethereum-types = "0.14"
+rlp = "0.5"
+keccak-hash = "0.10"
+
+# Cryptography
+sha2 = "0.10"
+sha3 = "0.10"
+ripemd = "0.1"
+hmac = "0.12"
+pbkdf2 = { version = "0.12", features = ["sha2"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+hex = "0.4"
+base58 = "0.2"
+bs58 = { version = "0.5", features = ["check"] }
+
+# Random number generation
+rand = "0.8"
+rand_core = "0.6"
+getrandom = "0.2"
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# UUID
+uuid = { version = "1.0", features = ["v4", "serde"] }
+
+# FFI
+libc = "0.2"
+
+# QR code generation for air-gapped signing
+qrcode = "0.14"
+
+# Zeroize sensitive data
+zeroize = { version = "1.8", features = ["derive"] }
+
+[dev-dependencies]
+tempfile = "3.0"
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3
+# Don't strip - we need symbols for debugging wallet issues
+strip = false
+
+[features]
+default = []
+ffi = []
+testnet = []

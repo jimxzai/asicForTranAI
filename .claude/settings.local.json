@@ -96,7 +96,9 @@
       "Bash(huggingface-cli:*)",
       "Bash(wc:*)",
       "Bash(pkill:*)",
-      "Bash(./llama_generate:*)"
+      "Bash(./llama_generate:*)",
+      "Bash(xargs:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []
