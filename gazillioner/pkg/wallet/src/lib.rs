@@ -68,6 +68,13 @@ pub enum Network {
     SolanaDevnet,
 }
 
+// Implement Zeroize for Network (no-op since Network contains no sensitive data)
+impl Zeroize for Network {
+    fn zeroize(&mut self) {
+        // Network is a Copy enum with no sensitive data, nothing to zeroize
+    }
+}
+
 impl Network {
     pub fn is_mainnet(&self) -> bool {
         matches!(
