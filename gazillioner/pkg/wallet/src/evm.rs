@@ -11,7 +11,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::eth::{EthereumWallet, EthereumAddress, EthereumTransaction, SignedEthTransaction};
+use crate::eth::{EthereumWallet, EthereumAddress, EthereumTransaction, SignedEthereumTransaction};
 use crate::hd::ExtendedPrivateKey;
 use crate::error::{WalletError, Result};
 use crate::Network;
@@ -164,7 +164,7 @@ impl EvmWallet {
         let signed = self.inner.sign_transaction(&eth_tx, from_index)?;
 
         Ok(SignedEvmTransaction {
-            chain: self.chain,
+            chain: self.chain.into(),
             raw_tx: signed.raw_tx,
             tx_hash: signed.tx_hash,
             from: signed.from,

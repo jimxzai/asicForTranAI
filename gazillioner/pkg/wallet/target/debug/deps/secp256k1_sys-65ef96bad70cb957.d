@@ -1,0 +1,10 @@
+/Users/jimxiao/dev/2025/AI2025/asicForTranAI/gazillioner/pkg/wallet/target/debug/deps/secp256k1_sys-65ef96bad70cb957.d: /Users/jimxiao/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/secp256k1-sys-0.10.1/src/lib.rs /Users/jimxiao/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/secp256k1-sys-0.10.1/src/macros.rs /Users/jimxiao/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/secp256k1-sys-0.10.1/src/types.rs /Users/jimxiao/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/secp256k1-sys-0.10.1/src/recovery.rs
+
+/Users/jimxiao/dev/2025/AI2025/asicForTranAI/gazillioner/pkg/wallet/target/debug/deps/libsecp256k1_sys-65ef96bad70cb957.rlib: /Users/jimxiao/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/secp256k1-sys-0.10.1/src/lib.rs /Users/jimxiao/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/secp256k1-sys-0.10.1/src/macros.rs /Users/jimxiao/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/secp256k1-sys-0.10.1/src/types.rs /Users/jimxiao/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/secp256k1-sys-0.10.1/src/recovery.rs
+
+/Users/jimxiao/dev/2025/AI2025/asicForTranAI/gazillioner/pkg/wallet/target/debug/deps/libsecp256k1_sys-65ef96bad70cb957.rmeta: /Users/jimxiao/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/secp256k1-sys-0.10.1/src/lib.rs /Users/jimxiao/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/secp256k1-sys-0.10.1/src/macros.rs /Users/jimxiao/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/secp256k1-sys-0.10.1/src/types.rs /Users/jimxiao/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/secp256k1-sys-0.10.1/src/recovery.rs
+
+/Users/jimxiao/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/secp256k1-sys-0.10.1/src/lib.rs:
+/Users/jimxiao/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/secp256k1-sys-0.10.1/src/macros.rs:
+/Users/jimxiao/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/secp256k1-sys-0.10.1/src/types.rs:
+/Users/jimxiao/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/secp256k1-sys-0.10.1/src/recovery.rs:

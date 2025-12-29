@@ -69,11 +69,11 @@ impl SolanaWallet {
 
         // For Solana, we use a simplified derivation
         // In production, use proper SLIP-0010 Ed25519 derivation
-        let derived = self.master_key.derive_path(&DerivationPath::from_string(&path)?)?;
+        let derived = self.master_key.derive(&DerivationPath::from_str(&path)?)?;
 
         // Use the private key bytes to seed Ed25519
         // This is a simplified version - real implementation would use proper SLIP-0010
-        let seed_bytes = derived.secret_key_bytes();
+        let seed_bytes = derived.private_key_bytes();
 
         // Ed25519 seed is 32 bytes
         let mut ed_seed = [0u8; 32];

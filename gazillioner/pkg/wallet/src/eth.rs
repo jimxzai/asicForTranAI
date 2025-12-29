@@ -297,6 +297,17 @@ impl EthereumWallet {
         )
     }
 
+    /// Get all generated addresses
+    pub fn get_all_addresses(&self) -> Vec<EthereumAddress> {
+        let mut addresses = Vec::new();
+        for i in 0..self.next_index {
+            if let Ok(addr) = self.get_address(i) {
+                addresses.push(addr);
+            }
+        }
+        addresses
+    }
+
     /// Get chain ID for current network
     pub fn chain_id(&self) -> u64 {
         match self.network {

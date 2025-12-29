@@ -228,6 +228,17 @@ impl BitcoinWallet {
         )
     }
 
+    /// Get all generated receive addresses
+    pub fn get_all_addresses(&self) -> Vec<BitcoinAddress> {
+        let mut addresses = Vec::new();
+        for i in 0..self.next_receive_index {
+            if let Ok(addr) = self.get_address(false, i) {
+                addresses.push(addr);
+            }
+        }
+        addresses
+    }
+
     /// Sign a transaction
     pub fn sign_transaction(&self, tx: &BitcoinTransaction) -> Result<SignedBitcoinTransaction> {
         let secp = Secp256k1::new();

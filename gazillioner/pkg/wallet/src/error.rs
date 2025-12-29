@@ -47,6 +47,9 @@ pub enum WalletError {
     #[error("Network mismatch: expected {expected:?}, got {actual:?}")]
     NetworkMismatch { expected: String, actual: String },
 
+    #[error("Invalid network: {0}")]
+    InvalidNetwork(String),
+
     #[error("Wallet not initialized")]
     NotInitialized,
 

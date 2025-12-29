@@ -1600,4 +1600,240 @@ mod tests {
 
         assert!(db.verify_audit_log().unwrap());
     }
+
+    // ========================================================================
+    // Broker Connection Tests
+    // ========================================================================
+
+    #[test]
+    fn test_create_and_get_broker_connection() {
+        let db = test_db();
+
+        let conn = db
+            .create_broker_connection(CreateBrokerConnection {
+                broker_type: BrokerType::Alpaca,
+                display_name: "My Alpaca Account".into(),
+                paper_trading: true,
+                api_key: Some("test_api_key".into()),
+                api_secret: Some("test_api_secret".into()),
+            })
+            .unwrap();
+
+        assert_eq!(conn.display_name, "My Alpaca Account");
+        assert!(conn.paper_trading);
+        assert_eq!(conn.status, BrokerStatus::Disconnected);
+
+        let retrieved = db.get_broker_connection(&conn.id).unwrap();
+        assert_eq!(retrieved.display_name, conn.display_name);
+    }
+
+    #[test]
+    fn test_list_broker_connections() {
+        let db = test_db();
+
+        db.create_broker_connection(CreateBrokerConnection {
+            broker_type: BrokerType::Alpaca,
+            display_name: "Alpaca Paper".into(),
+            paper_trading: true,
+            api_key: None,
+            api_secret: None,
+        })
+        .unwrap();
+
+        db.create_broker_connection(CreateBrokerConnection {
+            broker_type: BrokerType::Coinbase,
+            display_name: "Coinbase".into(),
+            paper_trading: false,
+            api_key: Some("cb_key".into()),
+            api_secret: Some("cb_secret".into()),
+        })
+        .unwrap();
+
+        let connections = db.list_broker_connections().unwrap();
+        assert_eq!(connections.len(), 2);
+    }
+
+    #[test]
+    fn test_update_broker_status() {
+        let db = test_db();
+
+        let conn = db
+            .create_broker_connection(CreateBrokerConnection {
+                broker_type: BrokerType::Ibkr,
+                display_name: "IBKR".into(),
+                paper_trading: false,
+                api_key: None,
+                api_secret: None,
+            })
+            .unwrap();
+
+        assert_eq!(conn.status, BrokerStatus::Disconnected);
+
+        // Update to connected
+        db.update_broker_status(&conn.id, BrokerStatus::Connected, None)
+            .unwrap();
+
+        let updated = db.get_broker_connection(&conn.id).unwrap();
+        assert_eq!(updated.status, BrokerStatus::Connected);
+        assert!(updated.connected_at.is_some());
+
+        // Update to error
+        db.update_broker_status(&conn.id, BrokerStatus::Error, Some("Connection timeout"))
+            .unwrap();
+
+        let errored = db.get_broker_connection(&conn.id).unwrap();
+        assert_eq!(errored.status, BrokerStatus::Error);
+        assert_eq!(errored.error_message, Some("Connection timeout".into()));
+    }
+
+    #[test]
+    fn test_update_broker_tokens() {
+        let db = test_db();
+
+        let conn = db
+            .create_broker_connection(CreateBrokerConnection {
+                broker_type: BrokerType::Schwab,
+                display_name: "Schwab".into(),
+                paper_trading: false,
+                api_key: None,
+                api_secret: None,
+            })
+            .unwrap();
+
+        // Update tokens
+        db.update_broker_tokens(
+            &conn.id,
+            UpdateBrokerTokens {
+                access_token: "access_123".into(),
+                refresh_token: Some("refresh_456".into()),
+                token_type: Some("Bearer".into()),
+                expires_at: Some(Utc::now() + chrono::Duration::hours(1)),
+                scope: Some("read write".into()),
+            },
+        )
+        .unwrap();
+
+        // Verify credentials stored
+        let creds = db.get_broker_credentials(&conn.id).unwrap();
+        assert_eq!(creds.access_token, Some("access_123".into()));
+        assert_eq!(creds.refresh_token, Some("refresh_456".into()));
+
+        // Verify status updated to connected
+        let updated = db.get_broker_connection(&conn.id).unwrap();
+        assert_eq!(updated.status, BrokerStatus::Connected);
+    }
+
+    #[test]
+    fn test_delete_broker_connection() {
+        let db = test_db();
+
+        let conn = db
+            .create_broker_connection(CreateBrokerConnection {
+                broker_type: BrokerType::Alpaca,
+                display_name: "To Delete".into(),
+                paper_trading: true,
+                api_key: Some("key".into()),
+                api_secret: Some("secret".into()),
+            })
+            .unwrap();
+
+        db.delete_broker_connection(&conn.id).unwrap();
+
+        // Should not find connection
+        let result = db.get_broker_connection(&conn.id);
+        assert!(result.is_err());
+
+        // Credentials should also be deleted (CASCADE)
+        let creds_result = db.get_broker_credentials(&conn.id);
+        assert!(creds_result.is_err());
+    }
+
+    // ========================================================================
+    // Paired Device Tests (P2P Sync)
+    // ========================================================================
+
+    #[test]
+    fn test_add_and_get_paired_device() {
+        let db = test_db();
+
+        let shared_key = [0u8; 32];
+        let device = db
+            .add_paired_device("device_123", "iPhone 15 Pro", &shared_key)
+            .unwrap();
+
+        assert_eq!(device.device_id, "device_123");
+        assert_eq!(device.device_name, "iPhone 15 Pro");
+        assert!(device.sync_enabled);
+        assert_eq!(device.trust_level, TrustLevel::Standard);
+        assert!(device.last_sync_at.is_none());
+
+        let retrieved = db.get_paired_device("device_123").unwrap();
+        assert_eq!(retrieved.device_name, device.device_name);
+    }
+
+    #[test]
+    fn test_list_paired_devices() {
+        let db = test_db();
+
+        let key1 = [1u8; 32];
+        let key2 = [2u8; 32];
+
+        db.add_paired_device("device_1", "MacBook Pro", &key1)
+            .unwrap();
+        db.add_paired_device("device_2", "iPad", &key2).unwrap();
+
+        let devices = db.list_paired_devices().unwrap();
+        assert_eq!(devices.len(), 2);
+    }
+
+    #[test]
+    fn test_update_device_last_sync() {
+        let db = test_db();
+
+        let shared_key = [0u8; 32];
+        let device = db
+            .add_paired_device("sync_device", "Test Device", &shared_key)
+            .unwrap();
+
+        assert!(device.last_sync_at.is_none());
+
+        db.update_device_last_sync("sync_device").unwrap();
+
+        let updated = db.get_paired_device("sync_device").unwrap();
+        assert!(updated.last_sync_at.is_some());
+    }
+
+    #[test]
+    fn test_get_paired_device_key() {
+        let db = test_db();
+
+        let shared_key: [u8; 32] = [42u8; 32];
+        db.add_paired_device("key_device", "Key Test Device", &shared_key)
+            .unwrap();
+
+        let retrieved_key = db.get_paired_device_key("key_device").unwrap();
+        assert_eq!(retrieved_key, shared_key.to_vec());
+    }
+
+    #[test]
+    fn test_remove_paired_device() {
+        let db = test_db();
+
+        let shared_key = [0u8; 32];
+        db.add_paired_device("remove_device", "To Remove", &shared_key)
+            .unwrap();
+
+        db.remove_paired_device("remove_device").unwrap();
+
+        let result = db.get_paired_device("remove_device");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_remove_nonexistent_device_fails() {
+        let db = test_db();
+
+        let result = db.remove_paired_device("nonexistent_device");
+        assert!(result.is_err());
+    }
 }

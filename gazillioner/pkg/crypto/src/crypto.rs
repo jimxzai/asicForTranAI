@@ -107,8 +107,9 @@ impl KeyDerivation {
     }
 
     /// Convert key to hex string for SQLCipher
+    /// SQLCipher raw key format requires double quotes: PRAGMA key = "x'...'";
     pub fn key_to_hex(key: &[u8; 32]) -> String {
-        format!("x'{}'", hex::encode(key))
+        format!("\"x'{}'\"", hex::encode(key))
     }
 }
 

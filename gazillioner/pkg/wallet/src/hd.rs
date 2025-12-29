@@ -88,8 +88,23 @@ impl ExtendedPrivateKey {
     /// Create master key from seed
     pub fn from_seed(seed: &Seed, network: Network) -> Result<Self> {
         let network_kind = match network {
-            Network::Bitcoin | Network::Ethereum => NetworkKind::Main,
-            Network::BitcoinTestnet | Network::EthereumGoerli => NetworkKind::Test,
+            // Mainnets
+            Network::Bitcoin
+            | Network::Ethereum
+            | Network::Polygon
+            | Network::Arbitrum
+            | Network::Base
+            | Network::Optimism
+            | Network::Solana => NetworkKind::Main,
+            // Testnets
+            Network::BitcoinTestnet
+            | Network::EthereumGoerli
+            | Network::EthereumSepolia
+            | Network::PolygonMumbai
+            | Network::ArbitrumGoerli
+            | Network::BaseSepolia
+            | Network::OptimismGoerli
+            | Network::SolanaDevnet => NetworkKind::Test,
         };
 
         let inner = Xpriv::new_master(network_kind, seed.as_bytes())
@@ -144,6 +159,20 @@ impl ExtendedPrivateKey {
     /// Serialize to base58 (xprv/tprv format)
     pub fn to_base58(&self) -> String {
         self.inner.to_string()
+    }
+
+    /// Get fingerprint (first 4 bytes of hash160 of public key)
+    pub fn fingerprint(&self) -> [u8; 4] {
+        self.to_extended_public_key().fingerprint()
+    }
+}
+
+impl Clone for ExtendedPrivateKey {
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+            network: self.network,
+        }
     }
 }
 

@@ -102,7 +102,10 @@
       "Bash(go build:*)",
       "Bash(go mod tidy:*)",
       "Bash(go run:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(cargo check:*)",
+      "Bash(cargo test:*)",
+      "Bash(source \"$HOME/.cargo/env\")"
     ],
     "deny": [],
     "ask": []

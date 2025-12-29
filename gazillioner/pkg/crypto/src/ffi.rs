@@ -130,7 +130,7 @@ pub extern "C" fn gazillioner_db_is_initialized() -> bool {
     guard.is_some()
 }
 
-/// Create a new holding
+/// Create a new holding in the default portfolio
 ///
 /// # Safety
 /// - All string parameters must be valid null-terminated C strings
@@ -158,7 +158,14 @@ pub unsafe extern "C" fn gazillioner_holding_create(
         CStr::from_ptr(notes).to_str().ok().map(String::from)
     };
 
+    // Get or create default portfolio
+    let portfolio = match db.get_default_portfolio() {
+        Ok(p) => p,
+        Err(e) => return StringResult::err(ResultCode::Error, e.to_string()),
+    };
+
     let req = CreateHolding {
+        portfolio_id: portfolio.id,
         ticker: ticker_str.to_string(),
         quantity,
         cost_basis,
@@ -176,7 +183,7 @@ pub unsafe extern "C" fn gazillioner_holding_create(
     }
 }
 
-/// List all holdings as JSON array
+/// List all holdings as JSON array (from default portfolio)
 #[no_mangle]
 pub extern "C" fn gazillioner_holding_list() -> StringResult {
     let guard = DATABASE.lock().unwrap();
@@ -185,7 +192,13 @@ pub extern "C" fn gazillioner_holding_list() -> StringResult {
         None => return StringResult::err(ResultCode::NotInitialized, "Database not initialized".into()),
     };
 
-    match db.list_holdings() {
+    // Get default portfolio
+    let portfolio = match db.get_default_portfolio() {
+        Ok(p) => p,
+        Err(e) => return StringResult::err(ResultCode::Error, e.to_string()),
+    };
+
+    match db.list_holdings(&portfolio.id) {
         Ok(holdings) => {
             let json = serde_json::to_string(&holdings).unwrap_or_default();
             StringResult::ok(json)

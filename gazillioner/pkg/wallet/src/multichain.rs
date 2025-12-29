@@ -35,7 +35,7 @@ impl From<BitcoinAddress> for ChainAddress {
             address: addr.address,
             derivation_path: addr.derivation_path,
             index: addr.index,
-            created_at: addr.created_at,
+            created_at: Utc::now(),
         }
     }
 }
@@ -47,7 +47,7 @@ impl From<EthereumAddress> for ChainAddress {
             address: addr.address,
             derivation_path: addr.derivation_path,
             index: addr.index,
-            created_at: addr.created_at,
+            created_at: Utc::now(),
         }
     }
 }
@@ -185,7 +185,7 @@ impl MultiChainWallet {
         &self,
         tx: &EthereumTransaction,
         from_index: u32,
-    ) -> Result<crate::eth::SignedEthTransaction> {
+    ) -> Result<crate::eth::SignedEthereumTransaction> {
         self.eth()?.sign_transaction(tx, from_index)
     }
 
@@ -217,7 +217,7 @@ impl MultiChainWallet {
             address: addr.address,
             derivation_path: addr.derivation_path,
             index: addr.index,
-            created_at: addr.created_at,
+            created_at: Utc::now(),
         })
     }
 
@@ -347,7 +347,7 @@ impl MultiChainWallet {
                     address: addr.address.clone(),
                     derivation_path: addr.derivation_path.clone(),
                     index: addr.index,
-                    created_at: addr.created_at,
+                    created_at: Utc::now(),
                 });
             }
         }

@@ -15,6 +15,8 @@
 //! - Air-gapped signing via QR codes
 //! - Zeroization of sensitive data
 
+use serde::{Deserialize, Serialize};
+
 pub mod mnemonic;
 pub mod hd;
 pub mod btc;
@@ -42,7 +44,7 @@ pub use error::{WalletError, Result};
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Supported networks/chains
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Network {
     // Bitcoin
     Bitcoin,
