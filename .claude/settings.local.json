@@ -88,7 +88,13 @@
       "WebFetch(domain:gazillioner.com)",
       "Bash(docker compose up:*)",
       "Bash(docker compose ps:*)",
-      "Bash(docker logs:*)"
+      "Bash(docker logs:*)",
+      "Bash(make llama_generate:*)",
+      "Bash(docker compose:*)",
+      "Bash(docker exec:*)",
+      "Bash(pip3 install:*)",
+      "Bash(huggingface-cli:*)",
+      "Bash(wc:*)"
     ],
     "deny": [],
     "ask": []
