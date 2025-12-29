@@ -47,6 +47,12 @@ pub enum Error {
     #[error("Serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
 
+    #[error("Serialization error: {0}")]
+    SerializationError(String),
+
+    #[error("Invalid input: {0}")]
+    InvalidInput(String),
+
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
 

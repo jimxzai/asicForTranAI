@@ -98,7 +98,11 @@
       "Bash(pkill:*)",
       "Bash(./llama_generate:*)",
       "Bash(xargs:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(go build:*)",
+      "Bash(go mod tidy:*)",
+      "Bash(go run:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []

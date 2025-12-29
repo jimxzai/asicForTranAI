@@ -21,6 +21,7 @@ const (
 	ViewChat
 	ViewMarket
 	ViewWallet
+	ViewRiskMetrics
 	ViewSettings
 	ViewHelp
 )
@@ -45,13 +46,14 @@ type KeyMap struct {
 	Refresh    key.Binding
 	Search     key.Binding
 	New        key.Binding
-	Dashboard  key.Binding
-	Portfolio  key.Binding
-	Watchlist  key.Binding
-	Chat       key.Binding
-	Market     key.Binding
-	Wallet     key.Binding
-	Settings   key.Binding
+	Dashboard   key.Binding
+	Portfolio   key.Binding
+	Watchlist   key.Binding
+	Chat        key.Binding
+	Market      key.Binding
+	Wallet      key.Binding
+	RiskMetrics key.Binding
+	Settings    key.Binding
 }
 
 // DefaultKeyMap returns the default key bindings
@@ -79,9 +81,10 @@ func DefaultKeyMap() KeyMap {
 		Portfolio:  key.NewBinding(key.WithKeys("2"), key.WithHelp("2", "portfolio")),
 		Watchlist:  key.NewBinding(key.WithKeys("3"), key.WithHelp("3", "watchlist")),
 		Chat:       key.NewBinding(key.WithKeys("4"), key.WithHelp("4", "chat")),
-		Market:     key.NewBinding(key.WithKeys("5"), key.WithHelp("5", "market")),
-		Wallet:     key.NewBinding(key.WithKeys("6"), key.WithHelp("6", "wallet")),
-		Settings:   key.NewBinding(key.WithKeys("0"), key.WithHelp("0", "settings")),
+		Market:      key.NewBinding(key.WithKeys("5"), key.WithHelp("5", "market")),
+		Wallet:      key.NewBinding(key.WithKeys("6"), key.WithHelp("6", "wallet")),
+		RiskMetrics: key.NewBinding(key.WithKeys("7"), key.WithHelp("7", "risk")),
+		Settings:    key.NewBinding(key.WithKeys("0"), key.WithHelp("0", "settings")),
 	}
 }
 
@@ -95,9 +98,10 @@ type Model struct {
 	err         error
 
 	// Submodels
-	dashboard *DashboardModel
-	portfolio *PortfolioModel
-	chat      *ChatModel
+	dashboard   *DashboardModel
+	portfolio   *PortfolioModel
+	chat        *ChatModel
+	riskMetrics *RiskMetricsModel
 
 	// UI components
 	spinner spinner.Model
@@ -196,6 +200,9 @@ func New() Model {
 	s.Spinner = spinner.Dot
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("#7C3AED"))
 
+	rm := NewRiskMetricsModel()
+	rm.SetMockData() // Load demo data
+
 	return Model{
 		currentView: ViewDashboard,
 		spinner:     s,
@@ -204,6 +211,7 @@ func New() Model {
 		dashboard:   NewDashboardModel(),
 		portfolio:   NewPortfolioModel(),
 		chat:        NewChatModel(),
+		riskMetrics: rm,
 	}
 }
 
@@ -254,6 +262,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.currentView = ViewWallet
 			return m, nil
 
+		case key.Matches(msg, m.keys.RiskMetrics):
+			m.currentView = ViewRiskMetrics
+			return m, nil
+
 		case key.Matches(msg, m.keys.Settings):
 			m.currentView = ViewSettings
 			return m, nil
@@ -279,6 +291,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if m.chat != nil {
 			m.chat.SetSize(msg.Width, msg.Height-4)
+		}
+		if m.riskMetrics != nil {
+			m.riskMetrics.SetSize(msg.Width, msg.Height-4)
 		}
 
 	case spinner.TickMsg:
@@ -308,6 +323,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.chat != nil {
 			newModel, cmd := m.chat.Update(msg)
 			m.chat = newModel.(*ChatModel)
+			cmds = append(cmds, cmd)
+		}
+	case ViewRiskMetrics:
+		if m.riskMetrics != nil {
+			newModel, cmd := m.riskMetrics.Update(msg)
+			m.riskMetrics = newModel.(*RiskMetricsModel)
 			cmds = append(cmds, cmd)
 		}
 	}
@@ -353,6 +374,7 @@ func (m Model) renderHeader() string {
 		{"4", "Chat", ViewChat},
 		{"5", "Market", ViewMarket},
 		{"6", "Wallet", ViewWallet},
+		{"7", "Risk", ViewRiskMetrics},
 		{"0", "Settings", ViewSettings},
 	}
 
@@ -404,6 +426,12 @@ func (m Model) renderContent() string {
 		content = m.renderMarketView()
 	case ViewWallet:
 		content = m.renderWalletView()
+	case ViewRiskMetrics:
+		if m.riskMetrics != nil {
+			content = m.riskMetrics.View()
+		} else {
+			content = "Risk Metrics loading..."
+		}
 	case ViewSettings:
 		content = m.renderSettingsView()
 	case ViewHelp:
@@ -421,7 +449,7 @@ func (m Model) renderContent() string {
 }
 
 func (m Model) renderFooter() string {
-	help := m.styles.Muted.Render("[?] Help  [q] Quit  [1-6] Navigate")
+	help := m.styles.Muted.Render("[?] Help  [q] Quit  [1-7,0] Navigate")
 
 	status := m.styles.Success.Render("● Connected")
 	if m.err != nil {

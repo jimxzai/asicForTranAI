@@ -8,23 +8,33 @@ import "google/protobuf/timestamp.proto";
 import "api/proto/v1/common.proto";
 
 // ============================================================================
-// Portfolio Service
+// Portfolio Service - Multi-Portfolio Support
 // ============================================================================
 
 service PortfolioService {
-  // Holdings CRUD
+  // Portfolio CRUD
+  rpc ListPortfolios(ListPortfoliosRequest) returns (ListPortfoliosResponse);
+  rpc GetPortfolio(GetPortfolioRequest) returns (Portfolio);
+  rpc CreatePortfolio(CreatePortfolioRequest) returns (Portfolio);
+  rpc UpdatePortfolio(UpdatePortfolioRequest) returns (Portfolio);
+  rpc DeletePortfolio(DeletePortfolioRequest) returns (Empty);
+  rpc SetDefaultPortfolio(SetDefaultPortfolioRequest) returns (Portfolio);
+
+  // Holdings CRUD (scoped to portfolio)
   rpc ListHoldings(ListHoldingsRequest) returns (ListHoldingsResponse);
   rpc GetHolding(GetHoldingRequest) returns (Holding);
   rpc AddHolding(AddHoldingRequest) returns (Holding);
   rpc UpdateHolding(UpdateHoldingRequest) returns (Holding);
   rpc DeleteHolding(DeleteHoldingRequest) returns (Empty);
+  rpc MoveHolding(MoveHoldingRequest) returns (Holding); // Move between portfolios
 
   // Bulk operations
   rpc ImportHoldings(ImportHoldingsRequest) returns (ImportHoldingsResponse);
   rpc ExportHoldings(ExportHoldingsRequest) returns (ExportHoldingsResponse);
 
-  // Portfolio summary
+  // Portfolio summary (can be for single or aggregated)
   rpc GetPortfolioSummary(GetPortfolioSummaryRequest) returns (PortfolioSummary);
+  rpc GetAggregatedSummary(GetAggregatedSummaryRequest) returns (PortfolioSummary);
   rpc GetAllocation(GetAllocationRequest) returns (AllocationResponse);
   rpc GetPerformance(GetPerformanceRequest) returns (PerformanceResponse);
 }
@@ -41,17 +51,105 @@ service WatchlistService {
 }
 
 // ============================================================================
+// Messages: Portfolio
+// ============================================================================
+
+message Portfolio {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  PortfolioType portfolio_type = 4;
+  string currency = 5;
+  bool is_default = 6;
+  string color = 7;                           // Hex color for UI
+  string icon = 8;                            // Icon name for UI
+  string benchmark_ticker = 9;                // e.g., "SPY"
+
+  // Computed summary (populated by service)
+  Decimal total_value = 10;
+  Decimal total_cost = 11;
+  Decimal total_gain_loss = 12;
+  Decimal total_gain_loss_percent = 13;
+  Decimal day_change = 14;
+  Decimal day_change_percent = 15;
+  int32 holdings_count = 16;
+
+  google.protobuf.Timestamp created_at = 30;
+  google.protobuf.Timestamp updated_at = 31;
+}
+
+enum PortfolioType {
+  PORTFOLIO_TYPE_UNSPECIFIED = 0;
+  PORTFOLIO_TYPE_INVESTMENT = 1;
+  PORTFOLIO_TYPE_RETIREMENT = 2;
+  PORTFOLIO_TYPE_TRADING = 3;
+  PORTFOLIO_TYPE_CRYPTO = 4;
+  PORTFOLIO_TYPE_REAL_ESTATE = 5;
+  PORTFOLIO_TYPE_EDUCATION = 6;
+  PORTFOLIO_TYPE_EMERGENCY = 7;
+  PORTFOLIO_TYPE_CUSTOM = 8;
+}
+
+message ListPortfoliosRequest {
+  PaginationRequest pagination = 1;
+  bool include_summary = 2;                   // Include computed totals
+}
+
+message ListPortfoliosResponse {
+  repeated Portfolio portfolios = 1;
+  PaginationResponse pagination = 2;
+  PortfolioSummary aggregated_summary = 3;    // Summary across all portfolios
+}
+
+message GetPortfolioRequest {
+  string id = 1;
+  bool include_holdings = 2;                  // Include holdings in response
+}
+
+message CreatePortfolioRequest {
+  string name = 1;
+  string description = 2;
+  PortfolioType portfolio_type = 3;
+  string currency = 4;
+  bool is_default = 5;
+  string color = 6;
+  string icon = 7;
+  string benchmark_ticker = 8;
+}
+
+message UpdatePortfolioRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  PortfolioType portfolio_type = 4;
+  bool is_default = 5;
+  string color = 6;
+  string icon = 7;
+  string benchmark_ticker = 8;
+}
+
+message DeletePortfolioRequest {
+  string id = 1;
+  bool delete_holdings = 2;                   // If false, moves to default portfolio
+}
+
+message SetDefaultPortfolioRequest {
+  string id = 1;
+}
+
+// ============================================================================
 // Messages: Holdings
 // ============================================================================
 
 message Holding {
   string id = 1;                              // Unique identifier
-  string ticker = 2;                          // Stock/ETF/crypto ticker
-  string name = 3;                            // Security name
-  Decimal quantity = 4;                       // Number of shares/units
-  Decimal cost_basis = 5;                     // Cost per share at acquisition
-  google.protobuf.Timestamp acquisition_date = 6;
-  string notes = 7;                           // User notes
+  string portfolio_id = 2;                    // Parent portfolio ID
+  string ticker = 3;                          // Stock/ETF/crypto ticker
+  string name = 4;                            // Security name
+  Decimal quantity = 5;                       // Number of shares/units
+  Decimal cost_basis = 6;                     // Cost per share at acquisition
+  google.protobuf.Timestamp acquisition_date = 7;
+  string notes = 8;                           // User notes
 
   // Computed fields (populated by service)
   Decimal current_price = 10;
@@ -83,9 +181,15 @@ enum AssetClass {
 }
 
 message ListHoldingsRequest {
-  PaginationRequest pagination = 1;
-  AssetClass filter_asset_class = 2;
-  string filter_sector = 3;
+  string portfolio_id = 1;                    // Required: which portfolio
+  PaginationRequest pagination = 2;
+  AssetClass filter_asset_class = 3;
+  string filter_sector = 4;
+}
+
+message MoveHoldingRequest {
+  string holding_id = 1;
+  string target_portfolio_id = 2;
 }
 
 message ListHoldingsResponse {
@@ -98,11 +202,12 @@ message GetHoldingRequest {
 }
 
 message AddHoldingRequest {
-  string ticker = 1;
-  Decimal quantity = 2;
-  Decimal cost_basis = 3;
-  google.protobuf.Timestamp acquisition_date = 4;
-  string notes = 5;
+  string portfolio_id = 1;                    // Required: target portfolio
+  string ticker = 2;
+  Decimal quantity = 3;
+  Decimal cost_basis = 4;
+  google.protobuf.Timestamp acquisition_date = 5;
+  string notes = 6;
 }
 
 message UpdateHoldingRequest {
@@ -118,8 +223,9 @@ message DeleteHoldingRequest {
 }
 
 message ImportHoldingsRequest {
-  bytes csv_data = 1;
-  map<string, string> column_mapping = 2;  // Maps CSV columns to Holding fields
+  string portfolio_id = 1;                    // Target portfolio
+  bytes csv_data = 2;
+  map<string, string> column_mapping = 3;  // Maps CSV columns to Holding fields
 }
 
 message ImportHoldingsResponse {
@@ -129,12 +235,13 @@ message ImportHoldingsResponse {
 }
 
 message ExportHoldingsRequest {
+  string portfolio_id = 1;                    // Empty = all portfolios
   enum Format {
     FORMAT_UNSPECIFIED = 0;
     FORMAT_CSV = 1;
     FORMAT_JSON = 2;
   }
-  Format format = 1;
+  Format format = 2;
 }
 
 message ExportHoldingsResponse {
@@ -147,27 +254,38 @@ message ExportHoldingsResponse {
 // Messages: Portfolio Summary
 // ============================================================================
 
-message GetPortfolioSummaryRequest {}
+message GetPortfolioSummaryRequest {
+  string portfolio_id = 1;                    // Specific portfolio (empty = default)
+}
+
+message GetAggregatedSummaryRequest {
+  repeated string portfolio_ids = 1;          // Empty = all portfolios
+}
 
 message PortfolioSummary {
-  Decimal total_value = 1;
-  Decimal total_cost = 2;
-  Decimal total_gain_loss = 3;
-  Decimal total_gain_loss_percent = 4;
-  Decimal day_change = 5;
-  Decimal day_change_percent = 6;
-  int32 holdings_count = 7;
-  google.protobuf.Timestamp last_updated = 8;
+  string portfolio_id = 1;                    // Empty if aggregated
+  string portfolio_name = 2;
+  Decimal total_value = 3;
+  Decimal total_cost = 4;
+  Decimal total_gain_loss = 5;
+  Decimal total_gain_loss_percent = 6;
+  Decimal day_change = 7;
+  Decimal day_change_percent = 8;
+  int32 holdings_count = 9;
+  int32 portfolios_count = 10;                // For aggregated summaries
+  google.protobuf.Timestamp last_updated = 11;
 }
 
 message GetAllocationRequest {
+  string portfolio_id = 1;                    // Empty = all portfolios
   enum GroupBy {
     GROUP_BY_UNSPECIFIED = 0;
     GROUP_BY_ASSET_CLASS = 1;
     GROUP_BY_SECTOR = 2;
     GROUP_BY_TICKER = 3;
+    GROUP_BY_PORTFOLIO = 4;                   // New: group by portfolio
   }
-  GroupBy group_by = 1;
+  GroupBy group_by = 2;
 }
 
 message AllocationResponse {
@@ -181,6 +299,7 @@ message AllocationItem {
 }
 
 message GetPerformanceRequest {
+  string portfolio_id = 1;                    // Empty = all portfolios
   enum Period {
     PERIOD_UNSPECIFIED = 0;
     PERIOD_1D = 1;
@@ -191,7 +310,7 @@ message GetPerformanceRequest {
     PERIOD_YTD = 6;
     PERIOD_ALL = 7;
   }
-  Period period = 1;
+  Period period = 2;
 }
 
 message PerformanceResponse {
