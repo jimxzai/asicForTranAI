@@ -1,0 +1,186 @@
+syntax = "proto3";
+
+package gazillioner.v1;
+
+option go_package = "github.com/gazillioner/gazillioner/api/v1;apiv1";
+
+import "google/protobuf/timestamp.proto";
+import "api/proto/v1/common.proto";
+
+// ============================================================================
+// Wallet Service - Bitcoin Cold Storage
+// ============================================================================
+
+service WalletService {
+  // Wallet management
+  rpc InitializeWallet(InitializeWalletRequest) returns (InitializeWalletResponse);
+  rpc GetWalletStatus(Empty) returns (WalletStatus);
+
+  // Address management
+  rpc GenerateAddress(GenerateAddressRequest) returns (Address);
+  rpc ListAddresses(ListAddressesRequest) returns (ListAddressesResponse);
+
+  // Balance
+  rpc GetBalance(GetBalanceRequest) returns (BalanceResponse);
+  rpc GetAddressBalance(GetAddressBalanceRequest) returns (AddressBalance);
+
+  // Transaction info (read-only, no signing in MVP)
+  rpc ListTransactions(ListTransactionsRequest) returns (ListTransactionsResponse);
+}
+
+// ============================================================================
+// Messages: Wallet Initialization
+// ============================================================================
+
+message InitializeWalletRequest {
+  // For new wallet creation, leave empty
+  // For recovery, provide mnemonic
+  string mnemonic = 1;                        // BIP-39 mnemonic (24 words)
+  string passphrase = 2;                      // Optional BIP-39 passphrase
+}
+
+message InitializeWalletResponse {
+  bool success = 1;
+  string message = 2;
+
+  // Only returned on new wallet creation (SAVE THIS!)
+  string mnemonic = 3;                        // BIP-39 mnemonic (24 words)
+  string master_fingerprint = 4;              // Wallet identifier
+
+  // Security warnings
+  repeated string warnings = 10;
+}
+
+message WalletStatus {
+  bool initialized = 1;
+  string master_fingerprint = 2;
+  int32 address_count = 3;
+
+  Decimal total_balance_btc = 10;
+  Decimal total_balance_usd = 11;
+
+  google.protobuf.Timestamp created_at = 20;
+  google.protobuf.Timestamp last_sync = 21;
+}
+
+// ============================================================================
+// Messages: Addresses
+// ============================================================================
+
+message GenerateAddressRequest {
+  enum AddressType {
+    ADDRESS_TYPE_UNSPECIFIED = 0;
+    ADDRESS_TYPE_RECEIVE = 1;                 // External (receive)
+    ADDRESS_TYPE_CHANGE = 2;                  // Internal (change)
+  }
+  AddressType type = 1;
+  string label = 2;                           // Optional user label
+}
+
+message Address {
+  string address = 1;                         // Bitcoin address
+  string label = 2;
+  int32 index = 3;                            // Derivation index
+  string derivation_path = 4;                 // e.g., "m/84'/0'/0'/0/0"
+
+  enum AddressType {
+    ADDRESS_TYPE_UNSPECIFIED = 0;
+    ADDRESS_TYPE_RECEIVE = 1;
+    ADDRESS_TYPE_CHANGE = 2;
+  }
+  AddressType type = 5;
+
+  Decimal balance_btc = 10;
+  int32 tx_count = 11;
+
+  google.protobuf.Timestamp created_at = 20;
+  google.protobuf.Timestamp last_used = 21;
+}
+
+message ListAddressesRequest {
+  PaginationRequest pagination = 1;
+  bool include_empty = 2;                     // Include zero-balance addresses
+  bool include_change = 3;                    // Include change addresses
+}
+
+message ListAddressesResponse {
+  repeated Address addresses = 1;
+  PaginationResponse pagination = 2;
+}
+
+// ============================================================================
+// Messages: Balance
+// ============================================================================
+
+message GetBalanceRequest {
+  enum Coin {
+    COIN_UNSPECIFIED = 0;
+    COIN_BTC = 1;
+  }
+  Coin coin = 1;
+}
+
+message BalanceResponse {
+  string coin = 1;                            // "BTC"
+  Decimal confirmed = 2;                      // Confirmed balance
+  Decimal unconfirmed = 3;                    // Pending balance
+  Decimal total = 4;                          // confirmed + unconfirmed
+  Decimal usd_value = 5;                      // Current USD value
+  int32 address_count = 6;
+  google.protobuf.Timestamp last_sync = 7;
+}
+
+message GetAddressBalanceRequest {
+  string address = 1;
+}
+
+message AddressBalance {
+  string address = 1;
+  Decimal confirmed = 2;
+  Decimal unconfirmed = 3;
+  Decimal total = 4;
+  int32 tx_count = 5;
+}
+
+// ============================================================================
+// Messages: Transactions
+// ============================================================================
+
+message ListTransactionsRequest {
+  PaginationRequest pagination = 1;
+  string address = 2;                         // Filter by address (optional)
+}
+
+message ListTransactionsResponse {
+  repeated Transaction transactions = 1;
+  PaginationResponse pagination = 2;
+}
+
+message Transaction {
+  string txid = 1;                            // Transaction ID
+
+  enum Direction {
+    DIRECTION_UNSPECIFIED = 0;
+    DIRECTION_INCOMING = 1;
+    DIRECTION_OUTGOING = 2;
+  }
+  Direction direction = 2;
+
+  Decimal amount_btc = 3;
+  Decimal fee_btc = 4;
+
+  int32 confirmations = 5;
+
+  enum Status {
+    STATUS_UNSPECIFIED = 0;
+    STATUS_PENDING = 1;
+    STATUS_CONFIRMED = 2;
+    STATUS_FAILED = 3;
+  }
+  Status status = 6;
+
+  repeated string addresses = 7;              // Involved addresses
+
+  google.protobuf.Timestamp timestamp = 10;
+  int32 block_height = 11;
+}

@@ -94,7 +94,9 @@
       "Bash(docker exec:*)",
       "Bash(pip3 install:*)",
       "Bash(huggingface-cli:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(pkill:*)",
+      "Bash(./llama_generate:*)"
     ],
     "deny": [],
     "ask": []

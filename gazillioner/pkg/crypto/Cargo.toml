@@ -1,0 +1,60 @@
+[package]
+name = "gazillioner-db"
+version = "0.1.0"
+edition = "2021"
+authors = ["Gazillioner Inc."]
+description = "Encrypted database layer for Gazillioner using SQLCipher"
+license = "Proprietary"
+repository = "https://github.com/gazillioner/gazillioner"
+
+[lib]
+name = "gazillioner_db"
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[dependencies]
+# SQLite with encryption
+rusqlite = { version = "0.32", features = ["bundled-sqlcipher", "blob", "functions"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Cryptography
+ring = "0.17"
+argon2 = "0.5"
+rand = "0.8"
+hex = "0.4"
+base64 = "0.22"
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Time handling
+chrono = { version = "0.4", features = ["serde"] }
+
+# UUID generation
+uuid = { version = "1.0", features = ["v4", "serde"] }
+
+# FFI
+libc = "0.2"
+
+# HMAC for audit logs
+hmac = "0.12"
+sha2 = "0.10"
+
+# Lazy initialization for FFI
+once_cell = "1.19"
+
+[dev-dependencies]
+tempfile = "3.0"
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3
+strip = true
+
+[features]
+default = []
+ffi = []

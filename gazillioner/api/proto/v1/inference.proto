@@ -1,0 +1,189 @@
+syntax = "proto3";
+
+package gazillioner.v1;
+
+option go_package = "github.com/gazillioner/gazillioner/api/v1;apiv1";
+
+import "google/protobuf/timestamp.proto";
+import "api/proto/v1/common.proto";
+
+// ============================================================================
+// Inference Service - AI Chat and Query
+// ============================================================================
+
+service InferenceService {
+  // Single-shot query (waits for complete response)
+  rpc Query(QueryRequest) returns (QueryResponse);
+
+  // Streaming query (token-by-token response)
+  rpc StreamQuery(QueryRequest) returns (stream StreamToken);
+
+  // Conversation management
+  rpc ListConversations(ListConversationsRequest) returns (ListConversationsResponse);
+  rpc GetConversation(GetConversationRequest) returns (Conversation);
+  rpc DeleteConversation(DeleteConversationRequest) returns (Empty);
+  rpc ExportConversation(ExportConversationRequest) returns (ExportConversationResponse);
+
+  // Model info
+  rpc GetModelInfo(Empty) returns (ModelInfo);
+  rpc GetModelStatus(Empty) returns (ModelStatus);
+}
+
+// ============================================================================
+// Messages: Query
+// ============================================================================
+
+message QueryRequest {
+  string query = 1;                           // User question
+  string conversation_id = 2;                 // Optional: continue conversation
+  QueryContext context = 3;                   // Optional: context injection
+  QueryOptions options = 4;                   // Generation options
+}
+
+message QueryContext {
+  bool include_portfolio = 1;                 // Inject portfolio data
+  bool include_market_data = 2;               // Inject current market quotes
+  repeated string ticker_context = 3;         // Specific tickers to include
+  string custom_context = 4;                  // User-provided context
+}
+
+message QueryOptions {
+  int32 max_tokens = 1;                       // Max response tokens (default: 2048)
+  double temperature = 2;                     // Sampling temperature (default: 0.7)
+  double top_p = 3;                           // Nucleus sampling (default: 0.9)
+  int32 top_k = 4;                            // Top-k sampling (default: 40)
+  bool stream = 5;                            // Enable streaming (for StreamQuery)
+}
+
+message QueryResponse {
+  string response = 1;                        // Complete response text
+  string conversation_id = 2;                 // Conversation ID for follow-ups
+  QueryMetadata metadata = 3;
+  VerificationMetadata verification = 4;
+  string disclaimer = 5;                      // Financial disclaimer
+}
+
+message QueryMetadata {
+  int32 prompt_tokens = 1;
+  int32 completion_tokens = 2;
+  int32 total_tokens = 3;
+  double latency_ms = 4;
+  string model = 5;
+  google.protobuf.Timestamp timestamp = 6;
+}
+
+// Streaming token for real-time display
+message StreamToken {
+  oneof content {
+    string token = 1;                         // Text token
+    StreamMetadata metadata = 2;              // Final metadata (sent last)
+  }
+  bool is_final = 3;                          // True for last message
+}
+
+message StreamMetadata {
+  string conversation_id = 1;
+  QueryMetadata query_metadata = 2;
+  VerificationMetadata verification = 3;
+  string disclaimer = 4;
+}
+
+// ============================================================================
+// Messages: Conversation
+// ============================================================================
+
+message Conversation {
+  string id = 1;
+  string title = 2;                           // Auto-generated from first message
+  repeated Message messages = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+message Message {
+  enum Role {
+    ROLE_UNSPECIFIED = 0;
+    ROLE_USER = 1;
+    ROLE_ASSISTANT = 2;
+    ROLE_SYSTEM = 3;
+  }
+  Role role = 1;
+  string content = 2;
+  google.protobuf.Timestamp timestamp = 3;
+  QueryMetadata metadata = 4;                 // Only for assistant messages
+}
+
+message ListConversationsRequest {
+  PaginationRequest pagination = 1;
+  google.protobuf.Timestamp since = 2;        // Filter by date
+}
+
+message ListConversationsResponse {
+  repeated ConversationSummary conversations = 1;
+  PaginationResponse pagination = 2;
+}
+
+message ConversationSummary {
+  string id = 1;
+  string title = 2;
+  int32 message_count = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+message GetConversationRequest {
+  string id = 1;
+}
+
+message DeleteConversationRequest {
+  string id = 1;
+}
+
+message ExportConversationRequest {
+  string id = 1;
+  enum Format {
+    FORMAT_UNSPECIFIED = 0;
+    FORMAT_JSON = 1;
+    FORMAT_MARKDOWN = 2;
+    FORMAT_TEXT = 3;
+  }
+  Format format = 2;
+}
+
+message ExportConversationResponse {
+  bytes data = 1;
+  string filename = 2;
+  string content_type = 3;
+}
+
+// ============================================================================
+// Messages: Model Info
+// ============================================================================
+
+message ModelInfo {
+  string name = 1;                            // e.g., "Llama 3 13B"
+  string version = 2;                         // e.g., "3.5-bit quantized"
+  int64 parameters = 3;                       // e.g., 13_000_000_000
+  int64 model_size_bytes = 4;                 // Size on disk
+  int32 context_length = 5;                   // Max context window
+  string quantization = 6;                    // e.g., "3.5-bit custom"
+  bool verified = 7;                          // Has Lean proofs
+  repeated string capabilities = 8;           // e.g., ["financial_qa", "portfolio_analysis"]
+}
+
+message ModelStatus {
+  enum State {
+    STATE_UNSPECIFIED = 0;
+    STATE_LOADING = 1;
+    STATE_READY = 2;
+    STATE_ERROR = 3;
+    STATE_UNAVAILABLE = 4;
+  }
+  State state = 1;
+  string message = 2;                         // Human-readable status
+  double memory_used_gb = 3;
+  double memory_total_gb = 4;
+  int32 active_requests = 5;
+  double avg_latency_ms = 6;
+  google.protobuf.Timestamp last_inference = 7;
+}

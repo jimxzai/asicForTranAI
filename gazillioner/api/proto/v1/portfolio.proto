@@ -1,0 +1,248 @@
+syntax = "proto3";
+
+package gazillioner.v1;
+
+option go_package = "github.com/gazillioner/gazillioner/api/v1;apiv1";
+
+import "google/protobuf/timestamp.proto";
+import "api/proto/v1/common.proto";
+
+// ============================================================================
+// Portfolio Service
+// ============================================================================
+
+service PortfolioService {
+  // Holdings CRUD
+  rpc ListHoldings(ListHoldingsRequest) returns (ListHoldingsResponse);
+  rpc GetHolding(GetHoldingRequest) returns (Holding);
+  rpc AddHolding(AddHoldingRequest) returns (Holding);
+  rpc UpdateHolding(UpdateHoldingRequest) returns (Holding);
+  rpc DeleteHolding(DeleteHoldingRequest) returns (Empty);
+
+  // Bulk operations
+  rpc ImportHoldings(ImportHoldingsRequest) returns (ImportHoldingsResponse);
+  rpc ExportHoldings(ExportHoldingsRequest) returns (ExportHoldingsResponse);
+
+  // Portfolio summary
+  rpc GetPortfolioSummary(GetPortfolioSummaryRequest) returns (PortfolioSummary);
+  rpc GetAllocation(GetAllocationRequest) returns (AllocationResponse);
+  rpc GetPerformance(GetPerformanceRequest) returns (PerformanceResponse);
+}
+
+// ============================================================================
+// Watchlist Service
+// ============================================================================
+
+service WatchlistService {
+  rpc ListWatchlist(ListWatchlistRequest) returns (ListWatchlistResponse);
+  rpc AddToWatchlist(AddToWatchlistRequest) returns (WatchlistItem);
+  rpc RemoveFromWatchlist(RemoveFromWatchlistRequest) returns (Empty);
+  rpc UpdateWatchlistItem(UpdateWatchlistItemRequest) returns (WatchlistItem);
+}
+
+// ============================================================================
+// Messages: Holdings
+// ============================================================================
+
+message Holding {
+  string id = 1;                              // Unique identifier
+  string ticker = 2;                          // Stock/ETF/crypto ticker
+  string name = 3;                            // Security name
+  Decimal quantity = 4;                       // Number of shares/units
+  Decimal cost_basis = 5;                     // Cost per share at acquisition
+  google.protobuf.Timestamp acquisition_date = 6;
+  string notes = 7;                           // User notes
+
+  // Computed fields (populated by service)
+  Decimal current_price = 10;
+  Decimal current_value = 11;                 // quantity * current_price
+  Decimal total_cost = 12;                    // quantity * cost_basis
+  Decimal gain_loss = 13;                     // current_value - total_cost
+  Decimal gain_loss_percent = 14;
+  Decimal day_change = 15;
+  Decimal day_change_percent = 16;
+
+  // Metadata
+  AssetClass asset_class = 20;
+  string sector = 21;
+  string exchange = 22;
+
+  google.protobuf.Timestamp created_at = 30;
+  google.protobuf.Timestamp updated_at = 31;
+}
+
+enum AssetClass {
+  ASSET_CLASS_UNSPECIFIED = 0;
+  ASSET_CLASS_STOCK = 1;
+  ASSET_CLASS_ETF = 2;
+  ASSET_CLASS_MUTUAL_FUND = 3;
+  ASSET_CLASS_BOND = 4;
+  ASSET_CLASS_CRYPTO = 5;
+  ASSET_CLASS_CASH = 6;
+  ASSET_CLASS_OTHER = 7;
+}
+
+message ListHoldingsRequest {
+  PaginationRequest pagination = 1;
+  AssetClass filter_asset_class = 2;
+  string filter_sector = 3;
+}
+
+message ListHoldingsResponse {
+  repeated Holding holdings = 1;
+  PaginationResponse pagination = 2;
+}
+
+message GetHoldingRequest {
+  string id = 1;
+}
+
+message AddHoldingRequest {
+  string ticker = 1;
+  Decimal quantity = 2;
+  Decimal cost_basis = 3;
+  google.protobuf.Timestamp acquisition_date = 4;
+  string notes = 5;
+}
+
+message UpdateHoldingRequest {
+  string id = 1;
+  Decimal quantity = 2;
+  Decimal cost_basis = 3;
+  google.protobuf.Timestamp acquisition_date = 4;
+  string notes = 5;
+}
+
+message DeleteHoldingRequest {
+  string id = 1;
+}
+
+message ImportHoldingsRequest {
+  bytes csv_data = 1;
+  map<string, string> column_mapping = 2;  // Maps CSV columns to Holding fields
+}
+
+message ImportHoldingsResponse {
+  int32 imported_count = 1;
+  int32 skipped_count = 2;
+  repeated string errors = 3;
+}
+
+message ExportHoldingsRequest {
+  enum Format {
+    FORMAT_UNSPECIFIED = 0;
+    FORMAT_CSV = 1;
+    FORMAT_JSON = 2;
+  }
+  Format format = 1;
+}
+
+message ExportHoldingsResponse {
+  bytes data = 1;
+  string filename = 2;
+  string content_type = 3;
+}
+
+// ============================================================================
+// Messages: Portfolio Summary
+// ============================================================================
+
+message GetPortfolioSummaryRequest {}
+
+message PortfolioSummary {
+  Decimal total_value = 1;
+  Decimal total_cost = 2;
+  Decimal total_gain_loss = 3;
+  Decimal total_gain_loss_percent = 4;
+  Decimal day_change = 5;
+  Decimal day_change_percent = 6;
+  int32 holdings_count = 7;
+  google.protobuf.Timestamp last_updated = 8;
+}
+
+message GetAllocationRequest {
+  enum GroupBy {
+    GROUP_BY_UNSPECIFIED = 0;
+    GROUP_BY_ASSET_CLASS = 1;
+    GROUP_BY_SECTOR = 2;
+    GROUP_BY_TICKER = 3;
+  }
+  GroupBy group_by = 1;
+}
+
+message AllocationResponse {
+  repeated AllocationItem items = 1;
+}
+
+message AllocationItem {
+  string label = 1;
+  Decimal value = 2;
+  Decimal percentage = 3;
+}
+
+message GetPerformanceRequest {
+  enum Period {
+    PERIOD_UNSPECIFIED = 0;
+    PERIOD_1D = 1;
+    PERIOD_1W = 2;
+    PERIOD_1M = 3;
+    PERIOD_3M = 4;
+    PERIOD_1Y = 5;
+    PERIOD_YTD = 6;
+    PERIOD_ALL = 7;
+  }
+  Period period = 1;
+}
+
+message PerformanceResponse {
+  repeated PerformanceDataPoint data_points = 1;
+  Decimal period_return = 2;
+  Decimal period_return_percent = 3;
+  Decimal benchmark_return = 4;         // S&P 500 comparison
+  Decimal benchmark_return_percent = 5;
+}
+
+message PerformanceDataPoint {
+  google.protobuf.Timestamp timestamp = 1;
+  Decimal value = 2;
+}
+
+// ============================================================================
+// Messages: Watchlist
+// ============================================================================
+
+message WatchlistItem {
+  string id = 1;
+  string ticker = 2;
+  string name = 3;
+  Decimal current_price = 4;
+  Decimal day_change = 5;
+  Decimal day_change_percent = 6;
+  Decimal high_52w = 7;
+  Decimal low_52w = 8;
+  string notes = 9;
+  google.protobuf.Timestamp added_at = 10;
+}
+
+message ListWatchlistRequest {
+  PaginationRequest pagination = 1;
+}
+
+message ListWatchlistResponse {
+  repeated WatchlistItem items = 1;
+  PaginationResponse pagination = 2;
+}
+
+message AddToWatchlistRequest {
+  string ticker = 1;
+  string notes = 2;
+}
+
+message RemoveFromWatchlistRequest {
+  string ticker = 1;
+}
+
+message UpdateWatchlistItemRequest {
+  string ticker = 1;
+  string notes = 2;
+}

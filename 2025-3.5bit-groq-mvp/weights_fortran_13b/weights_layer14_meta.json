@@ -1,0 +1,85 @@
+{
+  "layer": 14,
+  "shapes": {
+    "wq": [
+      5120,
+      640
+    ],
+    "wq_scales": [
+      40,
+      5120
+    ],
+    "wk": [
+      5120,
+      640
+    ],
+    "wk_scales": [
+      40,
+      5120
+    ],
+    "wv": [
+      5120,
+      640
+    ],
+    "wv_scales": [
+      40,
+      5120
+    ],
+    "wo": [
+      5120,
+      640
+    ],
+    "wo_scales": [
+      40,
+      5120
+    ],
+    "w_gate": [
+      5120,
+      1728
+    ],
+    "w_gate_scales": [
+      40,
+      13824
+    ],
+    "w_up": [
+      5120,
+      1728
+    ],
+    "w_up_scales": [
+      40,
+      13824
+    ],
+    "w_down": [
+      13824,
+      640
+    ],
+    "w_down_scales": [
+      108,
+      5120
+    ],
+    "attn_norm": [
+      5120
+    ],
+    "ffn_norm": [
+      5120
+    ]
+  },
+  "dtypes": {
+    "wq": "int32",
+    "wq_scales": "float16",
+    "wk": "int32",
+    "wk_scales": "float16",
+    "wv": "int32",
+    "wv_scales": "float16",
+    "wo": "int32",
+    "wo_scales": "float16",
+    "w_gate": "int32",
+    "w_gate_scales": "float16",
+    "w_up": "int32",
+    "w_up_scales": "float16",
+    "w_down": "int32",
+    "w_down_scales": "float16",
+    "attn_norm": "float16",
+    "ffn_norm": "float16"
+  }
+}
