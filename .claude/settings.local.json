@@ -105,7 +105,8 @@
       "Bash(mkdir:*)",
       "Bash(cargo check:*)",
       "Bash(cargo test:*)",
-      "Bash(source \"$HOME/.cargo/env\")"
+      "Bash(source \"$HOME/.cargo/env\")",
+      "Bash(cargo search:*)"
     ],
     "deny": [],
     "ask": []

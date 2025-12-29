@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["AddressType"],"struct":["BitcoinAddress","BitcoinTransaction","BitcoinWallet","SignedBitcoinTransaction","TxOutput","Utxo"]};

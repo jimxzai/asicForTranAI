@@ -16,6 +16,7 @@
 //! - Zeroization of sensitive data
 
 use serde::{Deserialize, Serialize};
+use zeroize::Zeroize;
 
 pub mod mnemonic;
 pub mod hd;

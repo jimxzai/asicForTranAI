@@ -12,7 +12,7 @@ crate-type = ["cdylib", "staticlib", "rlib"]
 
 [dependencies]
 # BIP39 mnemonic
-bip39 = "2.0"
+bip39 = { version = "2.0", features = ["std", "rand"] }
 
 # BIP32 HD derivation
 bitcoin = { version = "0.32", features = ["secp-recovery"] }

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["TxType"],"struct":["EthereumAddress","EthereumTransaction","EthereumWallet","SignedEthereumTransaction"]};

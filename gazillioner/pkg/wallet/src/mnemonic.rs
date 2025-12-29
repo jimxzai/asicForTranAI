@@ -19,7 +19,7 @@ impl Mnemonic {
     /// Generate a new 24-word mnemonic using secure randomness
     pub fn generate() -> Result<Self> {
         // 256 bits of entropy = 24 words
-        let mnemonic = Bip39Mnemonic::generate(24)
+        let mnemonic = Bip39Mnemonic::generate_in(Language::English, 24)
             .map_err(|e| WalletError::InvalidMnemonic(e.to_string()))?;
 
         Ok(Self { inner: mnemonic })
@@ -33,7 +33,7 @@ impl Mnemonic {
             ));
         }
 
-        let mnemonic = Bip39Mnemonic::generate(word_count)
+        let mnemonic = Bip39Mnemonic::generate_in(Language::English, word_count)
             .map_err(|e| WalletError::InvalidMnemonic(e.to_string()))?;
 
         Ok(Self { inner: mnemonic })
@@ -41,7 +41,7 @@ impl Mnemonic {
 
     /// Recover from existing mnemonic phrase
     pub fn from_phrase(phrase: &str) -> Result<Self> {
-        let mnemonic = Bip39Mnemonic::parse_normalized(phrase)
+        let mnemonic = Bip39Mnemonic::parse_in_normalized(Language::English, phrase)
             .map_err(|e| WalletError::InvalidMnemonic(e.to_string()))?;
 
         Ok(Self { inner: mnemonic })
@@ -54,8 +54,8 @@ impl Mnemonic {
     }
 
     /// Get the mnemonic phrase as a string
-    pub fn phrase(&self) -> &str {
-        self.inner.as_str()
+    pub fn phrase(&self) -> String {
+        self.inner.to_string()
     }
 
     /// Get individual words
@@ -83,7 +83,7 @@ impl Mnemonic {
 
     /// Validate a mnemonic phrase without creating a Mnemonic
     pub fn validate(phrase: &str) -> bool {
-        Bip39Mnemonic::parse_normalized(phrase).is_ok()
+        Bip39Mnemonic::parse_in_normalized(Language::English, phrase).is_ok()
     }
 
     /// Get the language of the mnemonic
