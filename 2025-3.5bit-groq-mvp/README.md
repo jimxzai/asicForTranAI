@@ -1,22 +1,23 @@
-# 3.5-bit Quantized LLM Inference on ASIC Hardware
+# 3.5-bit Quantized LLM Inference Engine
 
 [![Fortran](https://img.shields.io/badge/Fortran-2023-734f96?logo=fortran)](https://fortran-lang.org/)
 [![Lean 4](https://img.shields.io/badge/Lean-4-blue?logo=lean)](https://leanprover.github.io/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![CUDA](https://img.shields.io/badge/CUDA-Nvidia%20GPU-76B900.svg)](https://developer.nvidia.com/cuda-toolkit)
 [![MLIR](https://img.shields.io/badge/MLIR-Ready-orange)](https://mlir.llvm.org/)
 
-**The world's first formally-verified 3.5-bit quantization scheme for LLM inference, optimized for Groq ASIC deployment.**
+**The world's first formally-verified 3.5-bit quantization scheme for LLM inference—hardware-agnostic, targeting Nvidia GPUs, Groq LPUs, and CPU.**
 
 ## 🎯 Key Results
 
 | Metric | Value | vs Baseline |
 |--------|-------|-------------|
 | **Speedup (CPU)** | 6.995× | OpenMP + SIMD |
-| **Throughput** | 104 tok/s | 4 threads, M1 Max |
+| **Throughput (CPU)** | 104 tok/s | 4 threads, M1 Max |
+| **Throughput (Nvidia GPU)** | 4,188 tok/s | RTX 2080 Ti, cuBLAS |
 | **Projected (Groq LPU)** | 10,000+ tok/s | 67× vs CPU baseline |
 | **Accuracy** | 14.94% RMSE | 10.6% better than INT4 |
 | **Model Size** | 19 GB | 46% reduction vs INT4 |
-| **Memory Bandwidth** | 94% utilization | On Groq hardware |
 
 ## 🚀 Quick Start
 
@@ -55,11 +56,11 @@ make benchmark-simd
 - **DO-178C ready** for aerospace certification
 - Complete proofs in `../lean-verification/`
 
-### 4. ASIC-Ready Compilation
+### 4. Multi-Platform Deployment
+- **Nvidia GPU**: cuBLAS backend, 4,188 tok/s on RTX 2080 Ti
+- **Groq LPU**: MLIR pipeline (Fortran → MLIR → LPU binary), 10,000+ tok/s projected
+- **CPU**: OpenBLAS/SIMD, portable across x86/ARM
 - **MLIR** intermediate representation for hardware compilation
-- **Groq LPU** deployment pipeline (Fortran → MLIR → LPU binary)
-- Optimized for **320×320 systolic arrays**
-- Projected **10,000+ tok/s** on Groq hardware
 
 ## 📦 Installation
 
@@ -304,6 +305,7 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file for
 
 ## 🙏 Acknowledgments
 
+- **Nvidia**: For CUDA, cuBLAS, and GPU acceleration ecosystem
 - **Groq**: For LPU architecture and MLIR compilation tools
 - **Lean Community**: For Mathlib4 and theorem proving infrastructure
 - **LFortran Team**: For modern Fortran → MLIR compilation
@@ -329,6 +331,6 @@ If you use this work in your research, please cite:
 
 ---
 
-**Status**: ✅ Production-ready for CPU, 🚧 Pending Groq hardware access
+**Status**: ✅ Production-ready (CPU, Nvidia GPU) | 🚧 Groq LPU pending hardware access
 
-**Last Updated**: 2025-11-28
+**Last Updated**: 2025-12-28
