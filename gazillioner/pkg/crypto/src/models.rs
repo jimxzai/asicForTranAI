@@ -332,3 +332,208 @@ pub struct CreateMessage {
     pub content: String,
     pub metadata: Option<MessageMetadata>,
 }
+
+// ============================================================================
+// Broker Connections - Encrypted credential storage
+// ============================================================================
+
+/// Broker type enumeration
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum BrokerType {
+    Alpaca,
+    Ibkr,
+    Schwab,
+    Coinbase,
+}
+
+impl BrokerType {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            BrokerType::Alpaca => "alpaca",
+            BrokerType::Ibkr => "ibkr",
+            BrokerType::Schwab => "schwab",
+            BrokerType::Coinbase => "coinbase",
+        }
+    }
+
+    pub fn from_str(s: &str) -> Self {
+        match s.to_lowercase().as_str() {
+            "alpaca" => BrokerType::Alpaca,
+            "ibkr" | "interactive_brokers" => BrokerType::Ibkr,
+            "schwab" | "charles_schwab" => BrokerType::Schwab,
+            "coinbase" => BrokerType::Coinbase,
+            _ => BrokerType::Alpaca, // Default
+        }
+    }
+}
+
+/// Broker connection status
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum BrokerStatus {
+    Disconnected,
+    Connecting,
+    Connected,
+    Error,
+    TokenExpired,
+}
+
+impl BrokerStatus {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            BrokerStatus::Disconnected => "disconnected",
+            BrokerStatus::Connecting => "connecting",
+            BrokerStatus::Connected => "connected",
+            BrokerStatus::Error => "error",
+            BrokerStatus::TokenExpired => "token_expired",
+        }
+    }
+
+    pub fn from_str(s: &str) -> Self {
+        match s.to_lowercase().as_str() {
+            "connecting" => BrokerStatus::Connecting,
+            "connected" => BrokerStatus::Connected,
+            "error" => BrokerStatus::Error,
+            "token_expired" => BrokerStatus::TokenExpired,
+            _ => BrokerStatus::Disconnected,
+        }
+    }
+}
+
+/// Stored broker connection with encrypted credentials
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BrokerConnection {
+    pub id: String,
+    pub broker_type: BrokerType,
+    pub display_name: String,
+    pub account_id: Option<String>,
+    pub status: BrokerStatus,
+    pub paper_trading: bool,
+    pub error_message: Option<String>,
+    pub connected_at: Option<DateTime<Utc>>,
+    pub token_expires_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+/// Encrypted OAuth tokens (stored separately, never exposed in JSON)
+#[derive(Debug, Clone)]
+pub struct BrokerCredentials {
+    pub connection_id: String,
+    pub access_token: Option<String>,
+    pub refresh_token: Option<String>,
+    pub api_key: Option<String>,
+    pub api_secret: Option<String>,
+    pub token_type: Option<String>,
+    pub scope: Option<String>,
+}
+
+/// Request to create a broker connection
+#[derive(Debug, Clone)]
+pub struct CreateBrokerConnection {
+    pub broker_type: BrokerType,
+    pub display_name: String,
+    pub paper_trading: bool,
+    pub api_key: Option<String>,
+    pub api_secret: Option<String>,
+}
+
+/// Request to update broker tokens
+#[derive(Debug, Clone)]
+pub struct UpdateBrokerTokens {
+    pub access_token: String,
+    pub refresh_token: Option<String>,
+    pub token_type: Option<String>,
+    pub expires_at: Option<DateTime<Utc>>,
+    pub scope: Option<String>,
+}
+
+// ============================================================================
+// P2P Sync - Device pairing and sync metadata
+// ============================================================================
+
+/// Paired device for P2P sync
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PairedDevice {
+    pub device_id: String,
+    pub device_name: String,
+    pub first_paired_at: DateTime<Utc>,
+    pub last_sync_at: Option<DateTime<Utc>>,
+    pub sync_enabled: bool,
+    pub trust_level: TrustLevel,
+}
+
+/// Trust level for paired devices
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TrustLevel {
+    Standard,
+    Trusted,
+    Blocked,
+}
+
+impl TrustLevel {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            TrustLevel::Standard => "standard",
+            TrustLevel::Trusted => "trusted",
+            TrustLevel::Blocked => "blocked",
+        }
+    }
+
+    pub fn from_str(s: &str) -> Self {
+        match s.to_lowercase().as_str() {
+            "trusted" => TrustLevel::Trusted,
+            "blocked" => TrustLevel::Blocked,
+            _ => TrustLevel::Standard,
+        }
+    }
+}
+
+/// Sync session record
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SyncSession {
+    pub id: String,
+    pub device_id: String,
+    pub started_at: DateTime<Utc>,
+    pub completed_at: Option<DateTime<Utc>>,
+    pub status: SyncStatus,
+    pub records_sent: i32,
+    pub records_received: i32,
+    pub bytes_transferred: i64,
+    pub error_message: Option<String>,
+}
+
+/// Sync session status
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SyncStatus {
+    InProgress,
+    Completed,
+    PartiallyCompleted,
+    Failed,
+    Cancelled,
+}
+
+impl SyncStatus {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            SyncStatus::InProgress => "in_progress",
+            SyncStatus::Completed => "completed",
+            SyncStatus::PartiallyCompleted => "partially_completed",
+            SyncStatus::Failed => "failed",
+            SyncStatus::Cancelled => "cancelled",
+        }
+    }
+
+    pub fn from_str(s: &str) -> Self {
+        match s.to_lowercase().as_str() {
+            "completed" => SyncStatus::Completed,
+            "partially_completed" => SyncStatus::PartiallyCompleted,
+            "failed" => SyncStatus::Failed,
+            "cancelled" => SyncStatus::Cancelled,
+            _ => SyncStatus::InProgress,
+        }
+    }
+}

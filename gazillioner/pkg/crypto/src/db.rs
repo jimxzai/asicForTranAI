@@ -161,6 +161,61 @@ impl Database {
                 value TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             );
+
+            -- Broker connections table
+            CREATE TABLE IF NOT EXISTS broker_connections (
+                id TEXT PRIMARY KEY,
+                broker_type TEXT NOT NULL,
+                display_name TEXT NOT NULL,
+                account_id TEXT,
+                status TEXT NOT NULL DEFAULT 'disconnected',
+                paper_trading INTEGER NOT NULL DEFAULT 0,
+                error_message TEXT,
+                connected_at TEXT,
+                token_expires_at TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_broker_type ON broker_connections(broker_type);
+
+            -- Broker credentials table (encrypted, separate from connection metadata)
+            CREATE TABLE IF NOT EXISTS broker_credentials (
+                connection_id TEXT PRIMARY KEY,
+                access_token_encrypted TEXT,
+                refresh_token_encrypted TEXT,
+                api_key_encrypted TEXT,
+                api_secret_encrypted TEXT,
+                token_type TEXT,
+                scope TEXT,
+                FOREIGN KEY (connection_id) REFERENCES broker_connections(id) ON DELETE CASCADE
+            );
+
+            -- Paired devices table for P2P sync
+            CREATE TABLE IF NOT EXISTS paired_devices (
+                device_id TEXT PRIMARY KEY,
+                device_name TEXT NOT NULL,
+                shared_key_encrypted BLOB NOT NULL,
+                first_paired_at TEXT NOT NULL,
+                last_sync_at TEXT,
+                sync_enabled INTEGER NOT NULL DEFAULT 1,
+                trust_level TEXT NOT NULL DEFAULT 'standard'
+            );
+
+            -- Sync sessions table
+            CREATE TABLE IF NOT EXISTS sync_sessions (
+                id TEXT PRIMARY KEY,
+                device_id TEXT NOT NULL,
+                started_at TEXT NOT NULL,
+                completed_at TEXT,
+                status TEXT NOT NULL DEFAULT 'in_progress',
+                records_sent INTEGER DEFAULT 0,
+                records_received INTEGER DEFAULT 0,
+                bytes_transferred INTEGER DEFAULT 0,
+                error_message TEXT,
+                FOREIGN KEY (device_id) REFERENCES paired_devices(device_id) ON DELETE CASCADE
+            );
+            CREATE INDEX IF NOT EXISTS idx_sync_device ON sync_sessions(device_id);
+            CREATE INDEX IF NOT EXISTS idx_sync_status ON sync_sessions(status);
             ",
         )?;
 
@@ -965,6 +1020,296 @@ impl Database {
         }
 
         Ok(true)
+    }
+
+    // ========================================================================
+    // Broker Connection CRUD
+    // ========================================================================
+
+    /// Create a new broker connection
+    pub fn create_broker_connection(&self, req: CreateBrokerConnection) -> Result<BrokerConnection> {
+        let id = crypto::generate_id();
+        let now = Utc::now();
+
+        self.conn.execute(
+            "INSERT INTO broker_connections (id, broker_type, display_name, status, paper_trading, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            params![
+                id,
+                req.broker_type.as_str(),
+                req.display_name,
+                BrokerStatus::Disconnected.as_str(),
+                req.paper_trading as i32,
+                now.to_rfc3339(),
+                now.to_rfc3339(),
+            ],
+        )?;
+
+        // Store credentials if provided
+        if req.api_key.is_some() || req.api_secret.is_some() {
+            self.conn.execute(
+                "INSERT INTO broker_credentials (connection_id, api_key_encrypted, api_secret_encrypted)
+                 VALUES (?1, ?2, ?3)",
+                params![
+                    id,
+                    req.api_key,
+                    req.api_secret,
+                ],
+            )?;
+        }
+
+        self.log_action("create", "broker_connection", Some(&id), Some(&req.display_name))?;
+        self.get_broker_connection(&id)
+    }
+
+    /// Get a broker connection by ID
+    pub fn get_broker_connection(&self, id: &str) -> Result<BrokerConnection> {
+        self.conn
+            .query_row(
+                "SELECT id, broker_type, display_name, account_id, status, paper_trading,
+                 error_message, connected_at, token_expires_at, created_at, updated_at
+                 FROM broker_connections WHERE id = ?1",
+                params![id],
+                |row| {
+                    Ok(BrokerConnection {
+                        id: row.get(0)?,
+                        broker_type: BrokerType::from_str(&row.get::<_, String>(1)?),
+                        display_name: row.get(2)?,
+                        account_id: row.get(3)?,
+                        status: BrokerStatus::from_str(&row.get::<_, String>(4)?),
+                        paper_trading: row.get::<_, i32>(5)? != 0,
+                        error_message: row.get(6)?,
+                        connected_at: row.get::<_, Option<String>>(7)?.map(parse_datetime),
+                        token_expires_at: row.get::<_, Option<String>>(8)?.map(parse_datetime),
+                        created_at: parse_datetime(row.get::<_, String>(9)?),
+                        updated_at: parse_datetime(row.get::<_, String>(10)?),
+                    })
+                },
+            )
+            .map_err(|e| match e {
+                rusqlite::Error::QueryReturnedNoRows => Error::not_found("broker_connection", id),
+                _ => e.into(),
+            })
+    }
+
+    /// List all broker connections
+    pub fn list_broker_connections(&self) -> Result<Vec<BrokerConnection>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT id, broker_type, display_name, account_id, status, paper_trading,
+             error_message, connected_at, token_expires_at, created_at, updated_at
+             FROM broker_connections ORDER BY created_at DESC",
+        )?;
+
+        let connections = stmt
+            .query_map([], |row| {
+                Ok(BrokerConnection {
+                    id: row.get(0)?,
+                    broker_type: BrokerType::from_str(&row.get::<_, String>(1)?),
+                    display_name: row.get(2)?,
+                    account_id: row.get(3)?,
+                    status: BrokerStatus::from_str(&row.get::<_, String>(4)?),
+                    paper_trading: row.get::<_, i32>(5)? != 0,
+                    error_message: row.get(6)?,
+                    connected_at: row.get::<_, Option<String>>(7)?.map(parse_datetime),
+                    token_expires_at: row.get::<_, Option<String>>(8)?.map(parse_datetime),
+                    created_at: parse_datetime(row.get::<_, String>(9)?),
+                    updated_at: parse_datetime(row.get::<_, String>(10)?),
+                })
+            })?
+            .collect::<std::result::Result<Vec<_>, _>>()?;
+
+        Ok(connections)
+    }
+
+    /// Update broker connection status
+    pub fn update_broker_status(&self, id: &str, status: BrokerStatus, error_msg: Option<&str>) -> Result<()> {
+        let now = Utc::now();
+        let connected_at = if status == BrokerStatus::Connected {
+            Some(now.to_rfc3339())
+        } else {
+            None
+        };
+
+        self.conn.execute(
+            "UPDATE broker_connections SET status = ?1, error_message = ?2, connected_at = COALESCE(?3, connected_at), updated_at = ?4 WHERE id = ?5",
+            params![status.as_str(), error_msg, connected_at, now.to_rfc3339(), id],
+        )?;
+
+        self.log_action("update", "broker_connection", Some(id), Some(status.as_str()))?;
+        Ok(())
+    }
+
+    /// Update broker OAuth tokens
+    pub fn update_broker_tokens(&self, connection_id: &str, tokens: UpdateBrokerTokens) -> Result<()> {
+        let now = Utc::now();
+
+        // Update or insert credentials
+        self.conn.execute(
+            "INSERT INTO broker_credentials (connection_id, access_token_encrypted, refresh_token_encrypted, token_type, scope)
+             VALUES (?1, ?2, ?3, ?4, ?5)
+             ON CONFLICT(connection_id) DO UPDATE SET
+                access_token_encrypted = ?2,
+                refresh_token_encrypted = COALESCE(?3, refresh_token_encrypted),
+                token_type = COALESCE(?4, token_type),
+                scope = COALESCE(?5, scope)",
+            params![
+                connection_id,
+                tokens.access_token,
+                tokens.refresh_token,
+                tokens.token_type,
+                tokens.scope,
+            ],
+        )?;
+
+        // Update token expiry and status
+        self.conn.execute(
+            "UPDATE broker_connections SET status = ?1, token_expires_at = ?2, updated_at = ?3 WHERE id = ?4",
+            params![
+                BrokerStatus::Connected.as_str(),
+                tokens.expires_at.map(|t| t.to_rfc3339()),
+                now.to_rfc3339(),
+                connection_id,
+            ],
+        )?;
+
+        self.log_action("update", "broker_credentials", Some(connection_id), None)?;
+        Ok(())
+    }
+
+    /// Get broker credentials (access token, etc.)
+    pub fn get_broker_credentials(&self, connection_id: &str) -> Result<BrokerCredentials> {
+        self.conn
+            .query_row(
+                "SELECT connection_id, access_token_encrypted, refresh_token_encrypted,
+                 api_key_encrypted, api_secret_encrypted, token_type, scope
+                 FROM broker_credentials WHERE connection_id = ?1",
+                params![connection_id],
+                |row| {
+                    Ok(BrokerCredentials {
+                        connection_id: row.get(0)?,
+                        access_token: row.get(1)?,
+                        refresh_token: row.get(2)?,
+                        api_key: row.get(3)?,
+                        api_secret: row.get(4)?,
+                        token_type: row.get(5)?,
+                        scope: row.get(6)?,
+                    })
+                },
+            )
+            .map_err(|e| match e {
+                rusqlite::Error::QueryReturnedNoRows => Error::not_found("broker_credentials", connection_id),
+                _ => e.into(),
+            })
+    }
+
+    /// Delete a broker connection
+    pub fn delete_broker_connection(&self, id: &str) -> Result<()> {
+        // Credentials deleted via CASCADE
+        let rows = self.conn.execute("DELETE FROM broker_connections WHERE id = ?1", params![id])?;
+        if rows == 0 {
+            return Err(Error::not_found("broker_connection", id));
+        }
+        self.log_action("delete", "broker_connection", Some(id), None)?;
+        Ok(())
+    }
+
+    // ========================================================================
+    // Paired Devices CRUD (for P2P sync)
+    // ========================================================================
+
+    /// Add a paired device
+    pub fn add_paired_device(&self, device_id: &str, device_name: &str, shared_key: &[u8]) -> Result<PairedDevice> {
+        let now = Utc::now();
+
+        self.conn.execute(
+            "INSERT INTO paired_devices (device_id, device_name, shared_key_encrypted, first_paired_at, sync_enabled, trust_level)
+             VALUES (?1, ?2, ?3, ?4, 1, 'standard')",
+            params![device_id, device_name, shared_key, now.to_rfc3339()],
+        )?;
+
+        self.log_action("create", "paired_device", Some(device_id), Some(device_name))?;
+        self.get_paired_device(device_id)
+    }
+
+    /// Get a paired device by ID
+    pub fn get_paired_device(&self, device_id: &str) -> Result<PairedDevice> {
+        self.conn
+            .query_row(
+                "SELECT device_id, device_name, first_paired_at, last_sync_at, sync_enabled, trust_level
+                 FROM paired_devices WHERE device_id = ?1",
+                params![device_id],
+                |row| {
+                    Ok(PairedDevice {
+                        device_id: row.get(0)?,
+                        device_name: row.get(1)?,
+                        first_paired_at: parse_datetime(row.get::<_, String>(2)?),
+                        last_sync_at: row.get::<_, Option<String>>(3)?.map(parse_datetime),
+                        sync_enabled: row.get::<_, i32>(4)? != 0,
+                        trust_level: TrustLevel::from_str(&row.get::<_, String>(5)?),
+                    })
+                },
+            )
+            .map_err(|e| match e {
+                rusqlite::Error::QueryReturnedNoRows => Error::not_found("paired_device", device_id),
+                _ => e.into(),
+            })
+    }
+
+    /// List all paired devices
+    pub fn list_paired_devices(&self) -> Result<Vec<PairedDevice>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT device_id, device_name, first_paired_at, last_sync_at, sync_enabled, trust_level
+             FROM paired_devices ORDER BY last_sync_at DESC NULLS LAST",
+        )?;
+
+        let devices = stmt
+            .query_map([], |row| {
+                Ok(PairedDevice {
+                    device_id: row.get(0)?,
+                    device_name: row.get(1)?,
+                    first_paired_at: parse_datetime(row.get::<_, String>(2)?),
+                    last_sync_at: row.get::<_, Option<String>>(3)?.map(parse_datetime),
+                    sync_enabled: row.get::<_, i32>(4)? != 0,
+                    trust_level: TrustLevel::from_str(&row.get::<_, String>(5)?),
+                })
+            })?
+            .collect::<std::result::Result<Vec<_>, _>>()?;
+
+        Ok(devices)
+    }
+
+    /// Update last sync time for a device
+    pub fn update_device_last_sync(&self, device_id: &str) -> Result<()> {
+        let now = Utc::now();
+        self.conn.execute(
+            "UPDATE paired_devices SET last_sync_at = ?1 WHERE device_id = ?2",
+            params![now.to_rfc3339(), device_id],
+        )?;
+        Ok(())
+    }
+
+    /// Remove a paired device
+    pub fn remove_paired_device(&self, device_id: &str) -> Result<()> {
+        let rows = self.conn.execute("DELETE FROM paired_devices WHERE device_id = ?1", params![device_id])?;
+        if rows == 0 {
+            return Err(Error::not_found("paired_device", device_id));
+        }
+        self.log_action("delete", "paired_device", Some(device_id), None)?;
+        Ok(())
+    }
+
+    /// Get shared key for a paired device
+    pub fn get_paired_device_key(&self, device_id: &str) -> Result<Vec<u8>> {
+        self.conn
+            .query_row(
+                "SELECT shared_key_encrypted FROM paired_devices WHERE device_id = ?1",
+                params![device_id],
+                |row| row.get(0),
+            )
+            .map_err(|e| match e {
+                rusqlite::Error::QueryReturnedNoRows => Error::not_found("paired_device", device_id),
+                _ => e.into(),
+            })
     }
 }
 

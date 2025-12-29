@@ -22,6 +22,7 @@ const (
 	ViewMarket
 	ViewWallet
 	ViewRiskMetrics
+	ViewBroker
 	ViewSettings
 	ViewHelp
 )
@@ -53,6 +54,7 @@ type KeyMap struct {
 	Market      key.Binding
 	Wallet      key.Binding
 	RiskMetrics key.Binding
+	Broker      key.Binding
 	Settings    key.Binding
 }
 
@@ -84,6 +86,7 @@ func DefaultKeyMap() KeyMap {
 		Market:      key.NewBinding(key.WithKeys("5"), key.WithHelp("5", "market")),
 		Wallet:      key.NewBinding(key.WithKeys("6"), key.WithHelp("6", "wallet")),
 		RiskMetrics: key.NewBinding(key.WithKeys("7"), key.WithHelp("7", "risk")),
+		Broker:      key.NewBinding(key.WithKeys("8"), key.WithHelp("8", "broker")),
 		Settings:    key.NewBinding(key.WithKeys("0"), key.WithHelp("0", "settings")),
 	}
 }
@@ -102,6 +105,7 @@ type Model struct {
 	portfolio   *PortfolioModel
 	chat        *ChatModel
 	riskMetrics *RiskMetricsModel
+	broker      *BrokerModel
 
 	// UI components
 	spinner spinner.Model
@@ -203,6 +207,9 @@ func New() Model {
 	rm := NewRiskMetricsModel()
 	rm.SetMockData() // Load demo data
 
+	bm := NewBrokerModel()
+	bm.SetMockData() // Load demo data
+
 	return Model{
 		currentView: ViewDashboard,
 		spinner:     s,
@@ -212,6 +219,7 @@ func New() Model {
 		portfolio:   NewPortfolioModel(),
 		chat:        NewChatModel(),
 		riskMetrics: rm,
+		broker:      bm,
 	}
 }
 
@@ -266,6 +274,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.currentView = ViewRiskMetrics
 			return m, nil
 
+		case key.Matches(msg, m.keys.Broker):
+			m.currentView = ViewBroker
+			return m, nil
+
 		case key.Matches(msg, m.keys.Settings):
 			m.currentView = ViewSettings
 			return m, nil
@@ -294,6 +306,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if m.riskMetrics != nil {
 			m.riskMetrics.SetSize(msg.Width, msg.Height-4)
+		}
+		if m.broker != nil {
+			m.broker.SetSize(msg.Width, msg.Height-4)
 		}
 
 	case spinner.TickMsg:
@@ -329,6 +344,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.riskMetrics != nil {
 			newModel, cmd := m.riskMetrics.Update(msg)
 			m.riskMetrics = newModel.(*RiskMetricsModel)
+			cmds = append(cmds, cmd)
+		}
+	case ViewBroker:
+		if m.broker != nil {
+			newModel, cmd := m.broker.Update(msg)
+			m.broker = newModel.(*BrokerModel)
 			cmds = append(cmds, cmd)
 		}
 	}
@@ -375,6 +396,7 @@ func (m Model) renderHeader() string {
 		{"5", "Market", ViewMarket},
 		{"6", "Wallet", ViewWallet},
 		{"7", "Risk", ViewRiskMetrics},
+		{"8", "Broker", ViewBroker},
 		{"0", "Settings", ViewSettings},
 	}
 
@@ -432,6 +454,12 @@ func (m Model) renderContent() string {
 		} else {
 			content = "Risk Metrics loading..."
 		}
+	case ViewBroker:
+		if m.broker != nil {
+			content = m.broker.View()
+		} else {
+			content = "Broker loading..."
+		}
 	case ViewSettings:
 		content = m.renderSettingsView()
 	case ViewHelp:
@@ -449,7 +477,7 @@ func (m Model) renderContent() string {
 }
 
 func (m Model) renderFooter() string {
-	help := m.styles.Muted.Render("[?] Help  [q] Quit  [1-7,0] Navigate")
+	help := m.styles.Muted.Render("[?] Help  [q] Quit  [1-8,0] Navigate")
 
 	status := m.styles.Success.Render("● Connected")
 	if m.err != nil {
