@@ -1,0 +1,82 @@
+# asicForTranAI Inference Engine - GPU Build (RTX 2080 Ti)
+# Fortran 2023 + CUDA + cuBLAS + Python FastAPI
+#
+# Requires: nvidia-docker runtime
+
+# =============================================================================
+# Stage 1: Build Fortran inference engine with CUDA
+# =============================================================================
+FROM nvidia/cuda:11.8.0-devel-ubuntu22.04 AS builder
+
+RUN apt-get update && apt-get install -y \
+    gfortran \
+    make \
+    libopenblas-dev \
+    liblapack-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+
+# Copy source
+COPY src/*.f90 src/
+COPY Makefile .
+
+# Build with cuBLAS (for RTX 2080 Ti - compute capability 7.5)
+RUN make clean && make cuda \
+    CUDA_PATH=/usr/local/cuda \
+    CUDA_ARCH=75
+
+# =============================================================================
+# Stage 2: Runtime with CUDA
+# =============================================================================
+FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    libopenblas0 \
+    liblapack3 \
+    libgfortran5 \
+    python3 \
+    python3-pip \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN useradd -m -u 1000 inference
+
+WORKDIR /app
+
+# Copy Fortran binary and CUDA libraries
+COPY --from=builder /build/llama_generate /app/
+COPY --from=builder /build/*.so /app/lib/ 2>/dev/null || true
+
+# Copy Python API
+COPY api/inference_api.py /app/
+COPY api/market_gateway.py /app/
+COPY api/requirements.txt /app/
+
+# Install Python dependencies
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# Create directories
+RUN mkdir -p /models /cache /data \
+    && chown -R inference:inference /app /models /cache /data
+
+USER inference
+
+# Environment
+ENV INFERENCE_BIN=/app/llama_generate
+ENV WEIGHTS_PATH=/models
+ENV USE_CUDA=true
+ENV CUDA_VISIBLE_DEVICES=0
+ENV PYTHONUNBUFFERED=1
+ENV LD_LIBRARY_PATH=/app/lib:/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+EXPOSE 8000
+
+# Start FastAPI server
+CMD ["python3", "-m", "uvicorn", "inference_api:app", "--host", "0.0.0.0", "--port", "8000"]
