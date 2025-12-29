@@ -14,10 +14,16 @@ import seaborn as sns
 from pathlib import Path
 
 # Set publication style
-plt.style.use('seaborn-v0_8-paper')
+try:
+    plt.style.use('seaborn-paper')
+except:
+    pass  # Use default style if seaborn style not available
 sns.set_context("paper", font_scale=1.2)
 plt.rcParams['font.family'] = 'serif'
-plt.rcParams['font.serif'] = ['Times New Roman']
+try:
+    plt.rcParams['font.serif'] = ['Times New Roman']
+except:
+    pass  # Use default serif font if Times New Roman not available
 plt.rcParams['figure.dpi'] = 300
 
 # Create output directory
@@ -54,7 +60,7 @@ def figure1_model_size():
     plt.tight_layout()
     plt.savefig(output_dir / 'figure1_model_size.pdf', bbox_inches='tight')
     plt.savefig(output_dir / 'figure1_model_size.png', bbox_inches='tight')
-    print("✓ Generated Figure 1: Model Size Comparison")
+    print("[OK] Generated Figure 1: Model Size Comparison")
 
 
 def figure2_throughput():
@@ -94,7 +100,7 @@ def figure2_throughput():
     plt.tight_layout()
     plt.savefig(output_dir / 'figure2_throughput.pdf', bbox_inches='tight')
     plt.savefig(output_dir / 'figure2_throughput.png', bbox_inches='tight')
-    print("✓ Generated Figure 2: Throughput Comparison")
+    print("[OK] Generated Figure 2: Throughput Comparison")
 
 
 def figure3_quality_compression():
@@ -147,7 +153,7 @@ def figure3_quality_compression():
     plt.tight_layout()
     plt.savefig(output_dir / 'figure3_pareto.pdf', bbox_inches='tight')
     plt.savefig(output_dir / 'figure3_pareto.png', bbox_inches='tight')
-    print("✓ Generated Figure 3: Pareto Frontier")
+    print("[OK] Generated Figure 3: Pareto Frontier")
 
 
 def figure4_layer_breakdown():
@@ -185,7 +191,7 @@ def figure4_layer_breakdown():
     plt.tight_layout()
     plt.savefig(output_dir / 'figure4_layer_breakdown.pdf', bbox_inches='tight')
     plt.savefig(output_dir / 'figure4_layer_breakdown.png', bbox_inches='tight')
-    print("✓ Generated Figure 4: Layer-wise Breakdown")
+    print("[OK] Generated Figure 4: Layer-wise Breakdown")
 
 
 def figure5_bit_packing():
@@ -244,7 +250,7 @@ def figure5_bit_packing():
     plt.tight_layout()
     plt.savefig(output_dir / 'figure5_bit_packing.pdf', bbox_inches='tight')
     plt.savefig(output_dir / 'figure5_bit_packing.png', bbox_inches='tight')
-    print("✓ Generated Figure 5: Bit Packing Illustration")
+    print("[OK] Generated Figure 5: Bit Packing Illustration")
 
 
 def main():
@@ -260,12 +266,12 @@ def main():
     figure5_bit_packing()
 
     print("\n" + "="*60)
-    print(f"✅ All figures saved to: {output_dir.absolute()}/")
+    print(f"[SUCCESS] All figures saved to: {output_dir.absolute()}/")
     print("="*60 + "\n")
 
     print("Generated files:")
     for f in sorted(output_dir.glob('*.pdf')):
-        print(f"  📄 {f.name}")
+        print(f"  - {f.name}")
     print()
 
 
