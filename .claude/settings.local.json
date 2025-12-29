@@ -86,7 +86,9 @@
       "Bash(C:/tools/msys64/usr/bin/bash -lc \"cd /c/ai/asicForTranAI/2025-3.5bit-groq-mvp && PATH=/mingw64/bin:$PATH make benchmark-blas\")",
       "Bash(wmic path win32_VideoController get name 2)",
       "WebFetch(domain:gazillioner.com)",
-      "Bash(docker compose up:*)"
+      "Bash(docker compose up:*)",
+      "Bash(docker compose ps:*)",
+      "Bash(docker logs:*)"
     ],
     "deny": [],
     "ask": []
