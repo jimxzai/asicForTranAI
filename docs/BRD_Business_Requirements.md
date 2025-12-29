@@ -1,11 +1,17 @@
 # Business Requirements Document (BRD)
 ## 3.5-bit Fortran ASIC AI: Edge Intelligence Infrastructure
 
-**Version**: 1.0
-**Date**: 2025-11-28
+**Version**: 2.0
+**Date**: 2025-12-28
 **Authors**: Jim Xiao & Claude Code (Anthropic)
-**Status**: Phase 1 Complete, Phase 2 Planning
+**Status**: Strategic Pivot - Financial Services + Cloud API
 **Classification**: Public (Open Source)
+
+> **STRATEGIC UPDATE (2025-12-28)**: Following Nvidia's acquisition of Groq IP, we are pivoting to:
+> - **Primary Market**: Financial Services (model risk management, trading)
+> - **Delivery Model**: Cloud API Service (SaaS)
+> - **Hardware**: Nvidia GPU (primary), CPU (fallback)
+> - See [STRATEGY_2025_UPDATE.md](STRATEGY_2025_UPDATE.md) for full details
 
 ---
 
@@ -63,23 +69,29 @@ Transform edge AI infrastructure globally through:
 | Safety-Critical AI | $500M | $5B | $25B | 95% |
 | **Total Addressable Market** | **$10.5B** | **$42B** | **$150B** | **55%** |
 
-### 2.2 Target Markets
+### 2.2 Target Markets (Updated 2025-12-28)
 
-**Primary Markets (2025-2027)**
-1. **ASIC Vendors**: Groq, Cerebras, Tenstorrent, SambaNova
-2. **Research Institutions**: Universities, national labs doing LLM research
-3. **Open Source Community**: Fortran enthusiasts, HPC practitioners
+**Primary Market (2025-2027): Financial Services**
+1. **Model Risk Management**: Tier 1/2 banks, SR 11-7 compliance
+2. **Quantitative Trading**: Hedge funds, prop trading firms
+3. **Fintech Startups**: Lending, payments, wealth management
+4. **Insurance**: Underwriting, claims processing AI
 
 **Secondary Markets (2027-2030)**
-1. **Automotive**: Tesla, Mercedes, BMW (in-cabin AI)
-2. **Aviation**: Boeing, Airbus, Lockheed Martin (cockpit AI)
-3. **Aerospace**: NASA, ESA, SpaceX (deep space missions)
-4. **Mobile**: Apple, Qualcomm, Samsung (on-device LLMs)
+1. **Aviation**: Boeing, Airbus, Lockheed Martin (cockpit AI) - DO-178C path
+2. **Healthcare/Pharma**: FDA-regulated AI inference
+3. **Defense**: DoD, intelligence agencies (secure edge AI)
 
 **Tertiary Markets (2030+)**
-1. **Defense**: DoD, intelligence agencies (secure edge AI)
-2. **Medical Devices**: FDA-approved AI diagnostic tools
+1. **Automotive**: Tesla, Mercedes, BMW (in-cabin AI)
+2. **Aerospace**: NASA, ESA, SpaceX (deep space missions)
 3. **Industrial IoT**: Edge manufacturing, robotics
+
+**Why Financial Services First?**
+- Regulatory pressure (SR 11-7, CCAR) creates demand for verified AI
+- High margins, recurring revenue potential
+- Faster sales cycles than aerospace/defense
+- Our formal verification → compliance documentation moat
 
 ### 2.3 Competitive Landscape
 

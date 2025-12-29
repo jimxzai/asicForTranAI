@@ -84,7 +84,8 @@
       "Bash(C:/tools/msys64/mingw64/bin/pkg-config --modversion openblas)",
       "Bash(C:/tools/msys64/usr/bin/bash -lc \"cd /c/ai/asicForTranAI/2025-3.5bit-groq-mvp && PATH=/mingw64/bin:$PATH make clean\")",
       "Bash(C:/tools/msys64/usr/bin/bash -lc \"cd /c/ai/asicForTranAI/2025-3.5bit-groq-mvp && PATH=/mingw64/bin:$PATH make benchmark-blas\")",
-      "Bash(wmic path win32_VideoController get name 2)"
+      "Bash(wmic path win32_VideoController get name 2)",
+      "WebFetch(domain:gazillioner.com)"
     ],
     "deny": [],
     "ask": []
