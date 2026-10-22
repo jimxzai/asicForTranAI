@@ -7,7 +7,7 @@
 [![Hardware](https://img.shields.io/badge/Target-Multi--Platform-orange.svg)](#supported-hardware)
 
 > **🏆 World's First 3.5-bit Dynamic Asymmetric Quantization in Pure Fortran**
-> 70B model in 19GB | 4188+ tokens/sec | Targets: Nvidia GPU, Groq LPU, Edge Devices
+> 70B model in ~31 GB (3.5-bit weights) | 4188+ tokens/sec (projected, not yet measured) | Targets: Nvidia GPU, Groq LPU, Edge Devices
 
 📖 **[Live Website](https://jimxzai.github.io/asicForTranAI/)** | 📚 **[Technical Docs](https://jimxzai.github.io/asicForTranAI/technical.html)** | 🚀 **[Quick Start](2025-3.5bit-groq-mvp/NEXT_STEPS.md)**
 
@@ -26,7 +26,7 @@
 | Metric | Value | Comparison |
 |--------|-------|------------|
 | **Throughput** | 4188 tok/s | +35% vs INT4 (3100 tok/s) |
-| **Model Size** | 19 GB (70B) | -46% vs INT4 (35 GB) |
+| **Model Size** | ~31 GB (70B, weights only) | ~12% smaller than INT4 (~35 GB) |
 | **First Token** | 17 ms | -15% vs INT4 (20 ms) |
 | **Power** | 38 W | -7% vs INT4 (41 W) |
 | **Precision** | 3.5-bit | World's first |
