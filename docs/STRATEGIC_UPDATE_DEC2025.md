@@ -1,4 +1,6 @@
 # Strategic Update: December 2025
+
+> **Superseded 2026-10-22** — see [docs/STRATEGY_2026_Q4.md](STRATEGY_2026_Q4.md). Kept for history.
 **Near-Term Quick Win Strategy + Funding Path**
 
 **Date**: December 7, 2025

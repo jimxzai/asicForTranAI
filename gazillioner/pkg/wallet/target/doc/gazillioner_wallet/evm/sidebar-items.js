@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["EvmChain","EvmChainInfo","EvmTransaction","EvmWallet","SignedEvmTransaction"]};

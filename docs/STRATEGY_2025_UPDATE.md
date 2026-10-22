@@ -1,4 +1,6 @@
 # Strategic Update: Financial Services GTM
+
+> **Superseded 2026-10-22** — see [docs/STRATEGY_2026_Q4.md](STRATEGY_2026_Q4.md). Kept for history.
 **Date**: 2025-12-28
 **Version**: 2.0 (Post Nvidia-Groq Deal)
 
