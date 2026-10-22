@@ -1,6 +1,6 @@
 # Claims Audit — 2026-10-22
 
-Reproduce with `./scripts/claims_audit.sh` (read-only; exits non-zero on failures). Result on this machine: **7 failures**.
+Reproduce with `./scripts/claims_audit.sh` (read-only; exits non-zero on failures). Result on this machine: 7 failures at first run, 6 after the fixes below (the rest need GNATprove, Lean and measurement).
 
 **Bottom line**: the project's four headline claims are not supported by what the repo contains. Two are contradicted by arithmetic, one rests on hard-coded demo output, and one is partly unproven. The underlying engineering (a working 3.5-bit packing scheme, Fortran kernels, a Lean/SPARK skeleton) may be sound; the published numbers are not. This has to be fixed before any grant application, customer pilot or paper, because each of those involves checkable claims.
 
@@ -12,6 +12,16 @@ Reproduce with `./scripts/claims_audit.sh` (read-only; exits non-zero on failure
 | 2 | "4,188 tok/s on Groq, +28.9% vs INT4" | The benchmark report labels the Groq table **"Estimated"**. 4188/3124 is **+34.1%**, not 28.9%. The 28.9% is the speed-up from a small Python micro-benchmark (`benchmark_results_3p5bit.json`: 90 ms vs 70 ms), not a Groq measurement. `IMPLEMENTATION_COMPLETE.md` says "measured"; `COLD_EMAILS.md` says "simulated". No Groq run log is in the repo. | **Estimate presented as measurement; inconsistent** |
 | 3 | "247 SPARK proofs, 100% discharged" | `spark-llama-safety/Makefile` `prove` and `demo` targets are `echo` statements, with the text "This is a placeholder" and "Full implementation coming Q1 2026". `llama_inference_template.ads` says "TODO: Run GNATprove to verify all 247 checks". `.github/workflows/verify.yml` SPARK steps are TODOs; CI never runs GNATprove. The Ada source is 7 files, 892 lines. `gnatprove` is not installed here, so nothing could be re-run. | **No evidence the number is real** |
 | 4 | "Lean 4 proofs of quantization bounds" | 37 `sorry` (unproven goals) across `lean-verification` (6), `lean-alphaproof-mcts` (16) and `2025-3.5bit-groq-mvp/lean-proofs` (15), against 13 `theorem`/`lemma` declarations found. `lean`/`lake` not installed here, so the build was not run. | **Partly unproven** |
+| 5 | "3.5-bit storage" (legacy kernel `matmul_3p5bit_dynamic.f90`) | `W_Q` is declared `integer(int8) :: W_Q(K/2, N)`: **one byte per pair of weights, i.e. 4 bits per weight**, one bit wasted per byte. As written it has no memory advantage over INT4. True 3.5-bit needs bit-packing across bytes (16 weights in 7 bytes). | **Not realised in the legacy kernel** |
+
+## What was built in response (2026-10-22)
+
+`kernel3p5/` is a reference implementation that makes the format real and checkable (`make -C kernel3p5 test`, `make -C kernel3p5 bench`):
+
+- 16 weights in exactly 7 bytes; storage measured from array sizes at **3.500 bits/weight**, so 70.6B parameters = **30.9 GB** of weights.
+- Exhaustive round-trip over all 8 positions × 128 seven-bit codes; random K=4096 round-trips; matmul **bit-exact** against a naive integer reference; runtime bounds checking on.
+- int32 accumulator bound: safe for K ≤ 2,097,151 (|a| ≤ 128, |w| ≤ 8), and tight. Llama-70B has K ≤ 28,672. This is tested, not yet a machine-checked proof.
+- CPU result (Intel i9-9980HK, gfortran 16.2, single thread, scalar): the 3.5-bit matvec is **12.5% smaller** and **~29% slower** than packed INT4 on identical weights (4096×4096). That contradicts "28.9% faster"; unpacking 7-bit fields costs more than splitting nibbles on a CPU. It says nothing about accelerators or accuracy.
 
 ## Where it is published (exposure)
 

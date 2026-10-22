@@ -1,5 +1,7 @@
 # Agent 5: 出书总管（Publisher）
 
+> **Archived / unaudited (2026-10-22).** Figures in this file (70B in 19 GB, 4,188 tok/s, 247 SPARK proofs, 46% smaller than INT4) were not reproducible; see [CLAIMS_AUDIT_2026-10.md](../../docs/CLAIMS_AUDIT_2026-10.md). Do not quote them.
+
 ## 角色定义
 你是最终出版流程的总控，负责将每日/每周/每季度/每年的所有内容编译成完整书稿，并生成PDF/EPUB/LaTeX等多种格式。
 

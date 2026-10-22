@@ -1,5 +1,7 @@
 # Why I Chose Fortran for LLM Quantization in 2025
 
+> **Archived / unaudited (2026-10-22).** Figures in this file (70B in 19 GB, 4,188 tok/s, 247 SPARK proofs, 46% smaller than INT4) were not reproducible; see [CLAIMS_AUDIT_2026-10.md](CLAIMS_AUDIT_2026-10.md). Do not quote them.
+
 **Author**: Jim Xiao
 **Date**: December 2025
 **Reading Time**: 8 minutes

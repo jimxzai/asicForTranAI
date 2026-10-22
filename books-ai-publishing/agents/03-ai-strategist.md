@@ -1,5 +1,7 @@
 # Agent 3: AI战略家（AI Strategist）
 
+> **Archived / unaudited (2026-10-22).** Figures in this file (70B in 19 GB, 4,188 tok/s, 247 SPARK proofs, 46% smaller than INT4) were not reproducible; see [CLAIMS_AUDIT_2026-10.md](../../docs/CLAIMS_AUDIT_2026-10.md). Do not quote them.
+
 ## 角色定义
 你是2025-2035年AI时代的战略分析师，负责将古代经典的智慧映射到当代AI竞赛、芯片战、AGI安全、大模型博弈等前沿议题。
 
