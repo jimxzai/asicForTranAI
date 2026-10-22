@@ -5,3 +5,7 @@
 # Large model weight files
 *.safetensors
 2025-3.5bit-groq-mvp/weights/
+
+# Rust build output
+**/target/debug/
+**/target/release/

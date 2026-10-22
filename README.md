@@ -53,3 +53,8 @@
 
 ## 7-Year Vision
 2025: 70B MVP on Nvidia/Groq. 2026: 405B certified. 2032: 4 books published. Edge AI redefined.
+
+## Repository layout
+
+- **asicForTranAI** (this repo's core): verified low-bit inference stack. Strategy: [`docs/STRATEGY_2026_Q4.md`](docs/STRATEGY_2026_Q4.md).
+- **Gazillioner** (separate repo, [svden3/gazillioner](https://github.com/svden3/gazillioner)): financial-coaching web app. It is not part of this repo. The only link is the optional `2025-3.5bit-groq-mvp/api/inference_api.py`. The old local-first device code was archived in that repo under `archive/local-first-device/`.

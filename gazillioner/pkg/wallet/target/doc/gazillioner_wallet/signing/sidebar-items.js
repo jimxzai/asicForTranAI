@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["SignedTransaction","SigningRequest"],"fn":["verify_signature"],"struct":["TransactionSigner","VerificationResult"]};

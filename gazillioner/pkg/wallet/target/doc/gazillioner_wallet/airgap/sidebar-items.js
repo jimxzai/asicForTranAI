@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["AirGapMetadata","AirGapRequest","AirGapResponse","QrCodeAssembler","QrCodeData","TransactionDisplay"]};
