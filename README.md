@@ -11,11 +11,12 @@ The goal is narrow: for quantized formats (a 3.5-bit pair format today; MXFP4/NV
 | Item | State | How to check |
 |---|---|---|
 | 3.5-bit weight packing: 16 weights in exactly 7 bytes | Tested: exhaustive round-trip, bit-exact matmul vs naive integer reference, runtime bounds checks on | `make -C kernel3p5 test` |
+| MXFP4 (OCP microscaling) block format and matmul | Tested: decode table, exact match to a float64 reference, scale-byte range, 4.25 bits/weight | same test |
 | Storage is 3.5 bits/weight | Measured from array sizes; 70.6B params ≈ **30.9 GB** of weights | same test |
 | int32 accumulator cannot overflow for K ≤ 2,097,151 | Tested boundary; not yet a machine-checked proof | same test; proof is the next milestone |
 | CPU timing vs a packed INT4 baseline | Measured, single thread, scalar kernels (see below) | `make -C kernel3p5 bench` |
 
-Latest local result (Intel i9-9980HK, gfortran 16.2, `-O3 -march=native`, 4096×4096 matvec): the 3.5-bit kernel is **12.5% smaller** than packed INT4 and **~29% slower** (unvectorized bit-unpacking). This says nothing about GPUs, Groq/Cerebras-class hardware, or model accuracy.
+Latest local result (Intel i9-9980HK, gfortran 16.2, `-O3 -march=native`, one thread, scalar, 4096×4096 matvec, median of 15): packed INT4 13.3 ms; 3.5-bit 15.9 ms (1.20×, 12.5% fewer bytes); MXFP4 15.6 ms (1.17×, 6% more bytes). This says nothing about GPUs, accelerators or model accuracy. On synthetic heavy-tailed weights MXFP4 has about 4 dB better SQNR than INT4 g128 at similar bits, and the 3.5-bit pair format is worse than INT4 at equal bits (`studies/format_error_study.py`). Full scorecard: [`docs/EVALUATION_2026-10.md`](docs/EVALUATION_2026-10.md).
 
 ## What is not established
 
@@ -38,7 +39,8 @@ brew install gcc            # or any gfortran >= 12
 
 | Path | Purpose |
 |---|---|
-| `kernel3p5/` | Reference packing and matmul, tests, benchmark (start here) |
+| `kernel3p5/` | Reference 3.5-bit and MXFP4 kernels, tests, benchmark (start here) |
+| `studies/` | Reproducible format error study (numpy) |
 | `spark-llama-safety/` | Ada/SPARK contracts for the kernels (proofs pending) |
 | `lean-verification/` | Lean 4 quantization error bounds (work in progress) |
 | `2025-3.5bit-groq-mvp/` | Earlier prototype: kernels, GPU experiments, paper draft. Contains unaudited claims; treat as historical |
