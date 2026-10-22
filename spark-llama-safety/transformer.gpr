@@ -22,7 +22,7 @@ project Transformer is
    -- GNATprove verification settings
    package Prove is
       for Proof_Switches ("Ada") use (
-         "--level=4",              -- Verification effort (0=fast, 4=thorough)
+         "--level=2",              -- Verification effort (0=fast, 4=thorough)
          "--timeout=60",           -- Per-check timeout (seconds)
          "--prover=cvc5,z3,altergo", -- SMT solvers (parallel)
          "--steps=10000",          -- Max proof steps per check

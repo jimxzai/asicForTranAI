@@ -1,7 +1,8 @@
-# GitHub Actions: Verification Workflow
-# Runs SPARK verification and Lean proofs (when code is added)
+# CI for the reference kernel, formal proofs and the claims audit.
+# Required: kernel tests. Best-effort (continue-on-error until the toolchains are
+# confirmed working in CI): SPARK and Lean. None of these jobs print hard-coded results.
 
-name: Formal Verification
+name: Verification
 
 on:
   push:
@@ -10,82 +11,52 @@ on:
     branches: [ main ]
 
 jobs:
-  spark-verification:
-    name: SPARK Ada Verification
+  kernel-tests:
+    name: Reference kernel tests (required)
     runs-on: ubuntu-latest
-    # Only run if SPARK files exist
-    if: hashFiles('spark-llama-safety/**/*.ads') != ''
-
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+    - name: Install gfortran
+      run: sudo apt-get update && sudo apt-get install -y gfortran
+    - name: Tests (exhaustive pack/unpack, bit-exact matmul, overflow bound)
+      run: make -C kernel3p5 test
+    - name: Benchmark (informational, shared CI hardware)
+      run: make -C kernel3p5 bench
 
-    - name: Install GNAT and SPARK
-      run: |
-        # TODO: Add GNAT/SPARK installation
-        echo "Install GNATprove toolchain"
-        # sudo apt-get install gnat gnatprove
-
-    - name: Run SPARK Verification
-      run: |
-        cd spark-llama-safety
-        # TODO: Run actual GNATprove
-        echo "Running GNATprove verification..."
-        # gnatprove -P project.gpr --level=4
-
-    - name: Check All Proofs Pass
-      run: |
-        echo "Verify all 247 checks are green"
-        # Add check for proof results
-
-  lean-verification:
-    name: Lean Theorem Proving
+  spark-proofs:
+    name: SPARK proofs (best effort)
     runs-on: ubuntu-latest
-    # Only run if Lean files exist
-    if: hashFiles('lean-alphaproof-mcts/**/*.lean') != ''
-
+    continue-on-error: true
     steps:
-    - uses: actions/checkout@v3
-
-    - name: Install Lean 4
+    - uses: actions/checkout@v4
+    - uses: alire-project/setup-alire@v3
+    - name: Install GNAT toolchain and GNATprove
       run: |
-        # TODO: Add Lean installation
-        echo "Install Lean 4 and Lake"
-        # curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh
+        alr -n toolchain --select gnat_native gprbuild
+        alr -n install gnatprove
+        echo "$HOME/.alire/bin" >> "$GITHUB_PATH"
+    - name: Run GNATprove (fails if any check is unproven)
+      run: make -C spark-llama-safety prove
 
-    - name: Build Lean Proofs
-      run: |
-        cd lean-alphaproof-mcts
-        # TODO: Run lake build
-        echo "Building Lean proofs..."
-        # lake build
-
-    - name: Run Lean Tests
-      run: |
-        cd lean-alphaproof-mcts
-        echo "Testing Lean proofs..."
-        # lake test
-
-  fortran-build:
-    name: Build Fortran Code
+  lean-proofs:
+    name: Lean build (best effort)
     runs-on: ubuntu-latest
-
+    continue-on-error: true
     steps:
-    - uses: actions/checkout@v3
-
-    - name: Install GFortran
+    - uses: actions/checkout@v4
+    - uses: leanprover/lean-action@v1
+      with:
+        lake-package-directory: lean-verification
+    - name: Fail on sorry
       run: |
-        sudo apt-get update
-        sudo apt-get install -y gfortran
+        if grep -rn "sorry" --include='*.lean' lean-verification; then
+          echo "Unproven goals present"; exit 1
+        fi
 
-    - name: Build 1990 Numerical Code
-      if: hashFiles('1990-fortran-numerical/**/*.f90') != ''
-      run: |
-        cd 1990-fortran-numerical
-        # TODO: Add actual build
-        echo "Building 1990 Fortran code..."
-
-    - name: Build 2025 Groq MVP
-      if: hashFiles('2025-3.5bit-groq-mvp/**/*.f90') != ''
-      run: |
-        cd 2025-3.5bit-groq-mvp
-        make || echo "Makefile not ready yet"
+  claims-audit:
+    name: Claims audit (informational)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+    - uses: actions/checkout@v4
+    - run: ./scripts/claims_audit.sh

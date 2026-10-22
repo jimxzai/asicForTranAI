@@ -15,7 +15,7 @@ for bits in (4.0, 3.5):
     print(f"  {bits}-bit weights alone: {params * bits / 8 / 1e9:.1f} GB (decimal)")
 print(f"  bits/param implied by 19 GB: {19e9 * 8 / params:.2f}")
 EOF
-if grep -rqE '19 ?GB' 2025-3.5bit-groq-mvp --include='*.md' 2>/dev/null; then
+if git grep -qE '19 ?GB' -- '2025-3.5bit-groq-mvp/*.md' 2>/dev/null; then
   flag "19 GB appears in docs; 3.5 bits/param on 70B is ~30.9 GB (its own benchmark report says 32.6 GB)"
 fi
 
@@ -23,7 +23,7 @@ echo "2. Throughput: '4188 tok/s on Groq, +28.9% vs INT4'"
 python3 -c "print(f'  4188/3124 - 1 = {4188/3124 - 1:.1%} (docs say 28.9%)')"
 grep -n 'Estimated on Groq' 2025-3.5bit-groq-mvp/benchmark_report_3p5bit.md >/dev/null 2>&1 \
   && flag "benchmark report labels the Groq numbers 'Estimated'; no measured Groq run is in the repo"
-grep -rln 'baseline: 4,188 tok/s measured\|4,188 tok/s measured' 2025-3.5bit-groq-mvp 2>/dev/null \
+git grep -ln '4,188 tok/s measured' -- 2025-3.5bit-groq-mvp 2>/dev/null \
   | sed 's/^/  doc says "measured": /'
 
 echo "3. SPARK: '247/247 proofs discharged'"
@@ -42,13 +42,29 @@ else
 fi
 
 echo "4. Lean 4: 'proofs on quantization bounds'"
-sorries=$(grep -rc 'sorry' --include='*.lean' lean-verification lean-alphaproof-mcts 2025-3.5bit-groq-mvp/lean-proofs 2>/dev/null | awk -F: '{s+=$2} END {print s+0}')
+sorries=$(git grep -c 'sorry' -- '*.lean' 2>/dev/null | awk -F: '{s+=$NF} END {print s+0}')
 echo "  'sorry' occurrences (unproven goals): $sorries"
 [ "$sorries" -gt 0 ] && flag "$sorries 'sorry' in Lean sources; those theorems are not proven"
 if command -v lake >/dev/null 2>&1; then
   (cd lean-verification && lake build 2>&1 | tail -5)
 else
   flag "lake/lean not installed here, so the Lean build cannot be reproduced"
+fi
+
+echo "5. Legacy kernel storage: '3.5-bit' format in matmul_3p5bit_dynamic.f90"
+if grep -qE 'W_Q\(K/2, N\)' 2025-3.5bit-groq-mvp/matmul_3p5bit_dynamic.f90 2>/dev/null; then
+  flag "legacy kernel stores W_Q(K/2,N) as int8: one byte per pair of weights = 4 bits/weight, so no saving vs INT4 (use kernel3p5/ for true 3.5-bit packing)"
+fi
+
+echo "6. Reference kernel (kernel3p5): tests and measured storage"
+if command -v gfortran >/dev/null 2>&1; then
+  if make -s -C kernel3p5 test >/tmp/kernel3p5_test.log 2>&1; then
+    ok "kernel3p5 tests pass: $(grep -E 'measured storage|ALL TESTS' /tmp/kernel3p5_test.log | tr -s ' ' | paste -sd ';' -)"
+  else
+    flag "kernel3p5 tests fail; see /tmp/kernel3p5_test.log"
+  fi
+else
+  flag "gfortran not installed; reference kernel tests not run"
 fi
 
 echo
