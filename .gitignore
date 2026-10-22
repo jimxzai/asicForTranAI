@@ -9,3 +9,10 @@
 # Rust build output
 **/target/debug/
 **/target/release/
+
+# Build output
+kernel3p5/build/
+*.dSYM/
+__pycache__/
+*.pyc
+*.f90.[0-9][0-9][0-9][tr].*
