@@ -17,12 +17,13 @@ module pack3p5
 
 contains
 
+    ! Branch-free two's-complement sign extension of the low nbits of x.
     pure function sext(x, nbits) result(v)
         integer(int32), intent(in) :: x
         integer, intent(in) :: nbits
-        integer(int32) :: v
-        v = iand(x, ishft(1_int32, nbits) - 1_int32)
-        if (v >= ishft(1_int32, nbits - 1)) v = v - ishft(1_int32, nbits)
+        integer(int32) :: v, sb
+        sb = ishft(1_int32, nbits - 1)
+        v = ieor(iand(x, ishft(1_int32, nbits) - 1_int32), sb) - sb
     end function sext
 
     ! w: K integer weights, even positions (1,3,..) in [-8,7], odd (2,4,..) in [-4,3].
@@ -98,6 +99,7 @@ contains
             end do
         end do
     end subroutine matmul_packed3p5
+
 
     ! INT4 baseline: two 4-bit weights per byte (low nibble = even index).
     pure subroutine pack4_column(w, packed, K)

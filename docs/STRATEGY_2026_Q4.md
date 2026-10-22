@@ -30,9 +30,10 @@ Facts below marked † come from web searches on 2026-10-22 and were mostly seco
 
 Rules that follow:
 1. **Bit-width becomes a parameter, not the brand.** Extend the Lean/SPARK work to block-scaled FP4 formats, because that is where the market is. Keep 3.5-bit as one verified instance and as a research result.
-2. **Hardware-agnostic.** No dependency on any one vendor. Targets: Cerebras, AMD (post-Taalas), Tenstorrent, Hailo, Apple/Nvidia edge parts.
-3. **Fortran/MLIR is an implementation detail**, not a selling point. Lead with proofs and artifacts.
-4. **Claim only what is machine-checked.** "Overflow-free" and "error ≤ ε for these formats on these ops" are provable. "No hallucinations" or "correct advice" are not. This also protects the Gazillioner side from AI-washing exposure.
+2. **MXFP4 first.** `studies/format_error_study.py` shows the 3.5-bit pair format loses to INT4 at equal bits, while block-scaled FP4 wins on heavy tails; the verified-kernel work targets MXFP4/NVFP4, with the 3.5-bit format kept as a research variant. See [EVALUATION_2026-10.md](EVALUATION_2026-10.md).
+3. **Hardware-agnostic.** No dependency on any one vendor. Targets: Cerebras, AMD (post-Taalas), Tenstorrent, Hailo, Apple/Nvidia edge parts.
+4. **Fortran/MLIR is an implementation detail**, not a selling point. Lead with proofs and artifacts.
+5. **Claim only what is machine-checked.** "Overflow-free" and "error ≤ ε for these formats on these ops" are provable. "No hallucinations" or "correct advice" are not. This also protects the Gazillioner side from AI-washing exposure.
 
 ## 3. Business model (sequenced)
 

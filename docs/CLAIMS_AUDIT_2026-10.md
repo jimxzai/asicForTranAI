@@ -21,7 +21,7 @@ Reproduce with `./scripts/claims_audit.sh` (read-only; exits non-zero on failure
 - 16 weights in exactly 7 bytes; storage measured from array sizes at **3.500 bits/weight**, so 70.6B parameters = **30.9 GB** of weights.
 - Exhaustive round-trip over all 8 positions × 128 seven-bit codes; random K=4096 round-trips; matmul **bit-exact** against a naive integer reference; runtime bounds checking on.
 - int32 accumulator bound: safe for K ≤ 2,097,151 (|a| ≤ 128, |w| ≤ 8), and tight. Llama-70B has K ≤ 28,672. This is tested, not yet a machine-checked proof.
-- CPU result (Intel i9-9980HK, gfortran 16.2, single thread, scalar): the 3.5-bit matvec is **12.5% smaller** and **~29% slower** than packed INT4 on identical weights (4096×4096). That contradicts "28.9% faster"; unpacking 7-bit fields costs more than splitting nibbles on a CPU. It says nothing about accelerators or accuracy.
+- CPU result (Intel i9-9980HK, gfortran 16.2, single thread, scalar, median of 15): the 3.5-bit matvec is **12.5% smaller** and **~20% slower** than packed INT4 on identical weights (4096×4096; ~29% slower before the sign-extension optimization). That contradicts "28.9% faster"; unpacking 7-bit fields costs more than splitting nibbles on a CPU. It says nothing about accelerators or accuracy. See `docs/EVALUATION_2026-10.md`.
 
 ## Where it is published (exposure)
 
