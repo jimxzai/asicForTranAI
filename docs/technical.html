@@ -254,7 +254,7 @@
             <div class="info-box">
                 <strong>💡 Why 3.5-bit?</strong><br>
                 3.5-bit quantization offers the optimal balance between model size reduction and inference quality.
-                It achieves 46% smaller models than INT4 while maintaining comparable accuracy, and runs 35% faster.
+                It achieves about 12% smaller models than INT4 (weights only) while maintaining comparable accuracy, and is projected to run about 35% faster.
             </div>
         </div>
 
@@ -394,8 +394,8 @@ Output C:           M × N      (INT32)
 
 Total memory for 70B model:
 - Weights: 70B params × 3.5 bits / 8 = 30.6 GB
-- Scales/offsets: 70B × 8 bytes = 560 GB (but shared across layers)
-- Actual: ~19 GB with layer-wise loading</code></pre>
+- Scales/offsets: negligible (one FP32 pair per output channel)
+- Total: ~31 GB of weights; the KV cache and activations come on top</code></pre>
         </div>
 
         <div class="doc-section">
@@ -451,7 +451,7 @@ Fortran 2023 Source
                     <tr>
                         <td>Weight Packing</td>
                         <td>3.5-bit encoding</td>
-                        <td>46% memory reduction</td>
+                        <td>~12% memory reduction vs INT4</td>
                     </tr>
                     <tr>
                         <td>Parallelism</td>
@@ -502,8 +502,8 @@ Fortran 2023 Source
                     </tr>
                     <tr>
                         <td>Model Size (70B)</td>
-                        <td><strong>19 GB</strong></td>
-                        <td>0.54× vs INT4 (35 GB)</td>
+                        <td><strong>~31 GB</strong></td>
+                        <td>0.88× vs INT4 (~35 GB)</td>
                     </tr>
                     <tr>
                         <td>Power Consumption</td>
