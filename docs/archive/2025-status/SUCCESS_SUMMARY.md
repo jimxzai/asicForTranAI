@@ -1,5 +1,7 @@
 # 🎉 asicForTranAI: Project Success Summary
 
+> **Archived / unaudited (2026-10-22).** Figures in this file (70B in 19 GB, 4,188 tok/s, 247 SPARK proofs, 46% smaller than INT4) were not reproducible; see [CLAIMS_AUDIT_2026-10.md](../../CLAIMS_AUDIT_2026-10.md). Do not quote them.
+
 **Date**: November 28, 2025
 **Status**: ✅ Fully Functional Repository with Working Demo
 **Vision**: 35 Years from 1990 Fortran Parallel Computing to 2025 ASIC AI Inference

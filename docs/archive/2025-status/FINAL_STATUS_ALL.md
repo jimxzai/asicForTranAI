@@ -1,5 +1,7 @@
 # 🔥 "ALL" Command: Final Status Report
 
+> **Archived / unaudited (2026-10-22).** Figures in this file (70B in 19 GB, 4,188 tok/s, 247 SPARK proofs, 46% smaller than INT4) were not reproducible; see [CLAIMS_AUDIT_2026-10.md](../../CLAIMS_AUDIT_2026-10.md). Do not quote them.
+
 **Command Issued**: "all" (parallel execution of 5 tasks)
 **Execution Time**: 20 minutes
 **Current Status**: **3/5 COMPLETE, 2/5 IN PROGRESS** ✅

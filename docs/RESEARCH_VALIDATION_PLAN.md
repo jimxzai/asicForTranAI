@@ -1,4 +1,6 @@
 # Research Validation Plan: Proving 3.5-bit Fortran LLM Inference
+
+> **Archived / unaudited (2026-10-22).** Figures in this file (70B in 19 GB, 4,188 tok/s, 247 SPARK proofs, 46% smaller than INT4) were not reproducible; see [CLAIMS_AUDIT_2026-10.md](CLAIMS_AUDIT_2026-10.md). Do not quote them.
 **Purpose**: Establish academic credibility and empirical evidence for NeurIPS 2026 submission
 **Status**: Active research plan (Nov 2025 - May 2026)
 **Goal**: Prove that 3.5-bit quantization + Fortran implementation is a valuable direction

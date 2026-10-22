@@ -1,5 +1,7 @@
 # 🎓 Deep Dive: `encode_decode_identity` Theorem Proof
 
+> **Archived / unaudited (2026-10-22).** Figures in this file (70B in 19 GB, 4,188 tok/s, 247 SPARK proofs, 46% smaller than INT4) were not reproducible; see [CLAIMS_AUDIT_2026-10.md](../../CLAIMS_AUDIT_2026-10.md). Do not quote them.
+
 ## What This Theorem Proves
 
 **Statement**: For any quantized pair (n1, n2), if we encode it to a 7-bit raw value and then decode it back, we get the original pair.

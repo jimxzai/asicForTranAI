@@ -1,5 +1,7 @@
 # Master Execution Plan: A+B+C Integration
 
+> **Archived / unaudited (2026-10-22).** Figures in this file (70B in 19 GB, 4,188 tok/s, 247 SPARK proofs, 46% smaller than INT4) were not reproducible; see [CLAIMS_AUDIT_2026-10.md](../../CLAIMS_AUDIT_2026-10.md). Do not quote them.
+
 **Timeline**: This Weekend → Next 2 Weeks
 **Goal**: Deploy Fortran to Groq + Launch Career + Automate Everything
 

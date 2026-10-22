@@ -1,60 +1,53 @@
-# asicForTranAI: From 1990 Fortran Award to 2025 Ultra-Efficient AI Inference
+# asicForTranAI
 
-[![GitHub Pages](https://img.shields.io/badge/docs-live-blue.svg)](https://jimxzai.github.io/asicForTranAI/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Fortran](https://img.shields.io/badge/Fortran-2023-purple.svg)](https://fortran-lang.org)
-[![CUDA](https://img.shields.io/badge/CUDA-Nvidia%20GPU-76B900.svg)](https://developer.nvidia.com/cuda-toolkit)
-[![Hardware](https://img.shields.io/badge/Target-Multi--Platform-orange.svg)](#supported-hardware)
+Fortran reference kernels, formal proofs and tooling for **low-precision LLM inference you can check**.
 
-> **🏆 World's First 3.5-bit Dynamic Asymmetric Quantization in Pure Fortran**
-> 70B model in ~31 GB (3.5-bit weights) | 4188+ tokens/sec (projected, not yet measured) | Targets: Nvidia GPU, Groq LPU, Edge Devices
+The goal is narrow: for quantized formats (a 3.5-bit pair format today; MXFP4/NVFP4 and INT4 next), provide kernels in Fortran together with machine-checked statements that they cannot overflow and stay within stated error bounds. Bit-width is a parameter, not the product. See the plan in [`docs/STRATEGY_2026_Q4.md`](docs/STRATEGY_2026_Q4.md).
 
-📖 **[Live Website](https://jimxzai.github.io/asicForTranAI/)** | 📚 **[Technical Docs](https://jimxzai.github.io/asicForTranAI/technical.html)** | 🚀 **[Quick Start](2025-3.5bit-groq-mvp/NEXT_STEPS.md)**
+> **Status, 2026-10-22.** An audit of earlier claims ([`docs/CLAIMS_AUDIT_2026-10.md`](docs/CLAIMS_AUDIT_2026-10.md)) found that several headline numbers were wrong or unmeasured. Nothing below is claimed beyond what `make` reproduces.
 
----
+## What works and is checked
 
-## 🌟 Overview
+| Item | State | How to check |
+|---|---|---|
+| 3.5-bit weight packing: 16 weights in exactly 7 bytes | Tested: exhaustive round-trip, bit-exact matmul vs naive integer reference, runtime bounds checks on | `make -C kernel3p5 test` |
+| Storage is 3.5 bits/weight | Measured from array sizes; 70.6B params ≈ **30.9 GB** of weights | same test |
+| int32 accumulator cannot overflow for K ≤ 2,097,151 | Tested boundary; not yet a machine-checked proof | same test; proof is the next milestone |
+| CPU timing vs a packed INT4 baseline | Measured, single thread, scalar kernels (see below) | `make -C kernel3p5 bench` |
 
-**English**: Pioneered award-winning parallel numerical analysis in Fortran (1990). Built ML libraries & visualization under OpenGL founder Dr. Alan Norton at SGI (2000). PhD committee chaired by database theory father Prof. Peter Chen. Now: World's first 3.5-bit 70B inference in pure Fortran—hardware-agnostic, targeting Nvidia GPUs, Groq LPUs, and edge devices. SPARK-verified, Lean-proven. Plus AI annotations of Sun Tzu, Zizhi Tongjian, Bible for AGI era. Vision: 7 years to phone/edge AI at aviation safety.
+Latest local result (Intel i9-9980HK, gfortran 16.2, `-O3 -march=native`, 4096×4096 matvec): the 3.5-bit kernel is **12.5% smaller** than packed INT4 and **~29% slower** (unvectorized bit-unpacking). This says nothing about GPUs, Groq/Cerebras-class hardware, or model accuracy.
 
-**中文**：1990 年 Fortran 数值并行获奖项目。2000 年 SGI 在 OpenGL 之父 Alan Norton 手下建 ML 库与可视化。PhD 委员会由数据库理论之父 Peter Chen 把关。2025：全球首 3.5-bit 70B Fortran 推理，硬件无关架构，支持 Nvidia GPU、Groq LPU 及边缘设备。SPARK 验证 + Lean 证明。另有 AI 时代《孙子》《资治通鉴》《圣经》注疏。愿景：7 年内手机/边缘 AI 达航空级安全。
+## What is not established
 
----
+- **No end-to-end model run.** `2025-3.5bit-groq-mvp/llama70b_3p5bit.f90` is a skeleton with dummy values; only the quantization and matmul kernels are real.
+- **Throughput on accelerators**: the 4,188 tok/s figure was an estimate and is not measured.
+- **SPARK**: ~900 lines of Ada exist in `spark-llama-safety/`, but GNATprove has not been run here and the earlier "247/247 proven" output was hard-coded. CI now runs the real tool (see `.github/workflows/verify.yml`).
+- **Lean**: the Lean sources contain 37 `sorry` (unproven goals), so they are not proofs yet.
+- **Accuracy**: no perplexity or task evaluation of 3.5-bit vs INT4 on a real model has been done.
 
-## ⚡ Key Achievements
+Re-run the full audit any time with `./scripts/claims_audit.sh`.
 
-| Metric | Value | Comparison |
-|--------|-------|------------|
-| **Throughput** | 4188 tok/s | +35% vs INT4 (3100 tok/s) |
-| **Model Size** | ~31 GB (70B, weights only) | ~12% smaller than INT4 (~35 GB) |
-| **First Token** | 17 ms | -15% vs INT4 (20 ms) |
-| **Power** | 38 W | -7% vs INT4 (41 W) |
-| **Precision** | 3.5-bit | World's first |
+## Quick start
 
-## Supported Hardware
+```bash
+brew install gcc            # or any gfortran >= 12
+./demo.sh                   # tests, then CPU benchmark
+```
 
-| Platform | Status | Backend |
-|----------|--------|---------|
-| **Nvidia GPU** | ✅ Primary | cuBLAS, CUDA |
-| **CPU (x86/ARM)** | ✅ Supported | OpenBLAS, SIMD |
-| **Groq LPU** | ✅ Supported | MLIR pipeline |
-| **Edge Devices** | 🚧 Roadmap | TinyML export |
+## Layout
 
-## Structure
-- `1990-fortran-numerical/`: Award-winning parallel numerical project.
-- `2000-sgi-ml-viz/`: SGI ML library + OpenGL visualization.
-- `2000-peter-chen-er/`: PhD notes under Peter Chen.
-- `2025-3.5bit-groq-mvp/`: 3.5-bit quantized inference engine (Fortran).
-- `spark-llama-safety/`: SPARK proofs (247 checks green).
-- `lean-alphaproof-mcts/`: AlphaZero MCTS + 3.5-bit theorem.
-- `three-books-ai-annotations/`: NotebookLM/Claude agents for Sun Tzu, Zizhi Tongjian, Bible.
+| Path | Purpose |
+|---|---|
+| `kernel3p5/` | Reference packing and matmul, tests, benchmark (start here) |
+| `spark-llama-safety/` | Ada/SPARK contracts for the kernels (proofs pending) |
+| `lean-verification/` | Lean 4 quantization error bounds (work in progress) |
+| `2025-3.5bit-groq-mvp/` | Earlier prototype: kernels, GPU experiments, paper draft. Contains unaudited claims; treat as historical |
+| `lean-alphaproof-mcts/` | Experiments with search-based proof generation |
+| `docs/` | Strategy, audit, architecture notes; `docs/archive/` holds 2025 status documents |
+| `1990-fortran-numerical/`, `2000-*`, `three-books-ai-annotations/`, `books-ai-publishing/` | Personal history and unrelated side projects |
 
-[Live Demo](https://jimxzai.github.io/asicForTranAI/) | [Contribute](https://github.com/jimxzai/asicForTranAI/issues)
+Gazillioner, the financial-coaching product, is a separate repository ([svden3/gazillioner](https://github.com/svden3/gazillioner)). The only link is the optional `2025-3.5bit-groq-mvp/api/inference_api.py`.
 
-## 7-Year Vision
-2025: 70B MVP on Nvidia/Groq. 2026: 405B certified. 2032: 4 books published. Edge AI redefined.
+## Contributing
 
-## Repository layout
-
-- **asicForTranAI** (this repo's core): verified low-bit inference stack. Strategy: [`docs/STRATEGY_2026_Q4.md`](docs/STRATEGY_2026_Q4.md).
-- **Gazillioner** (separate repo, [svden3/gazillioner](https://github.com/svden3/gazillioner)): financial-coaching web app. It is not part of this repo. The only link is the optional `2025-3.5bit-groq-mvp/api/inference_api.py`. The old local-first device code was archived in that repo under `archive/local-first-device/`.
+Issues and pull requests are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md). Any performance or proof claim in a pull request needs a command that reproduces it.

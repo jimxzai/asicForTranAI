@@ -1,5 +1,7 @@
 # 🔥 Status Report: Tasks 1-5 Execution Complete
 
+> **Archived / unaudited (2026-10-22).** Figures in this file (70B in 19 GB, 4,188 tok/s, 247 SPARK proofs, 46% smaller than INT4) were not reproducible; see [CLAIMS_AUDIT_2026-10.md](../../CLAIMS_AUDIT_2026-10.md). Do not quote them.
+
 **Execution Time**: 10 minutes
 **Completion**: 5/5 tasks (100%)
 **Next Steps**: Tool verification + Week 1 kickoff

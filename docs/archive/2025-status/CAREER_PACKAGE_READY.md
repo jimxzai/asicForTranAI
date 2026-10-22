@@ -1,5 +1,7 @@
 # 🎯 Complete Career Package - Ready to Use
 
+> **Archived / unaudited (2026-10-22).** Figures in this file (70B in 19 GB, 4,188 tok/s, 247 SPARK proofs, 46% smaller than INT4) were not reproducible; see [CLAIMS_AUDIT_2026-10.md](../../CLAIMS_AUDIT_2026-10.md). Do not quote them.
+
 **Created**: 2025-11-28
 **Status**: ✅ ALL MATERIALS READY
 **Next Step**: Update LinkedIn (15 minutes), then apply to AdaCore (30 minutes)

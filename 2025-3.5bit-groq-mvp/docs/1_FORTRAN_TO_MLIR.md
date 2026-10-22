@@ -1,5 +1,7 @@
 # Fortran → MLIR Compilation Pathway
 
+> **Archived / unaudited (2026-10-22).** Figures in this file (70B in 19 GB, 4,188 tok/s, 247 SPARK proofs, 46% smaller than INT4) were not reproducible; see [CLAIMS_AUDIT_2026-10.md](../../docs/CLAIMS_AUDIT_2026-10.md). Do not quote them.
+
 **Complete Guide: From Your Fortran Code to Groq LPU Binary**
 
 ---

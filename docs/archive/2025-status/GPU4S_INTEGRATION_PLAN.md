@@ -1,5 +1,7 @@
 # 🚀 GPU4S Bench Integration Plan: 3.5-bit SPARK on AMD GPU
 
+> **Archived / unaudited (2026-10-22).** Figures in this file (70B in 19 GB, 4,188 tok/s, 247 SPARK proofs, 46% smaller than INT4) were not reproducible; see [CLAIMS_AUDIT_2026-10.md](../../CLAIMS_AUDIT_2026-10.md). Do not quote them.
+
 **Discovery**: GPU4S already has CUDA ↔ HIP drop-in replacement!
 **Impact**: Option A timeline reduced from 2 days → **1 day**
 **Date**: 2025-11-28

@@ -1,4 +1,6 @@
 # Paper 1 Status: NeurIPS 2026 Submission
+
+> **Archived / unaudited (2026-10-22).** Figures in this file (70B in 19 GB, 4,188 tok/s, 247 SPARK proofs, 46% smaller than INT4) were not reproducible; see [CLAIMS_AUDIT_2026-10.md](../../docs/CLAIMS_AUDIT_2026-10.md). Do not quote them.
 **Title**: 3.5-bit Dynamic Asymmetric Quantization for Extreme-Scale LLM Inference
 **Target**: NeurIPS 2026 (May 2026 submission deadline)
 **Status**: Draft with benchmark data complete

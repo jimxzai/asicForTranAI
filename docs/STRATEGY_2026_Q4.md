@@ -55,7 +55,7 @@ Services pay for the work; the proof library is the asset. Do not hire before a 
 
 | Window | Deliverable | Done when |
 |---|---|---|
-| Weeks 1–2 | **Claims audit**: DONE in first pass, see [CLAIMS_AUDIT_2026-10.md](CLAIMS_AUDIT_2026-10.md) (7 failures: 19 GB is arithmetically wrong, 4,188 tok/s is an estimate, "247 proofs" is hard-coded output, 37 Lean `sorry`). Remaining: install GNATprove and Lean, rerun, publish real counts and one measured tok/s | `scripts/claims_audit.sh` passes or its failures are explained; public pages corrected |
+| Weeks 1–2 | **Claims audit**: DONE in first pass, see [CLAIMS_AUDIT_2026-10.md](CLAIMS_AUDIT_2026-10.md) (7 failures: 19 GB is arithmetically wrong, 4,188 tok/s is an estimate, "247 proofs" is hard-coded output, 37 Lean `sorry`). Done since: `kernel3p5/` reference kernel (exhaustive tests, measured 3.5 bits/weight, CPU benchmark), README and public pages corrected, CI made real. Remaining: install GNATprove and Lean, rerun, publish real proof counts | `scripts/claims_audit.sh` passes or its failures are explained; public pages corrected |
 | Weeks 1–3 | Extend Lean model to MXFP4/NVFP4 block-scaled dot products | Theorem statements and at least one fully proved bound |
 | Weeks 2–6 | Two SBIR/STTR topic matches identified; one white paper or Phase I submitted | Submission confirmation |
 | Weeks 3–8 | 20 targeted outreaches to chip/IP vendors (Cerebras, AMD/Taalas, Tenstorrent, Hailo, Axelera, Etched) with a 2-page "verified FP4 kernel" brief | ≥5 conversations, ≥1 paid pilot scoped |

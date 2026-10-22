@@ -1,4 +1,6 @@
 # Draft Paper Abstracts and Contribution Statements
+
+> **Archived / unaudited (2026-10-22).** Figures in this file (70B in 19 GB, 4,188 tok/s, 247 SPARK proofs, 46% smaller than INT4) were not reproducible; see [CLAIMS_AUDIT_2026-10.md](CLAIMS_AUDIT_2026-10.md). Do not quote them.
 ## 6-Paper Series: 3.5-bit Fortran ASIC AI + Formal Verification
 
 **Author**: Jim Xiao & Claude Code (Anthropic)

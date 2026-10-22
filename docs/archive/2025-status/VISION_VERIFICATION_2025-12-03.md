@@ -1,4 +1,6 @@
 # 7-Year Vision Verification Report
+
+> **Archived / unaudited (2026-10-22).** Figures in this file (70B in 19 GB, 4,188 tok/s, 247 SPARK proofs, 46% smaller than INT4) were not reproducible; see [CLAIMS_AUDIT_2026-10.md](../../CLAIMS_AUDIT_2026-10.md). Do not quote them.
 ## 检验报告：35年传奇 → 7年出版计划 → 完整落地
 
 **验证日期**: 2025年12月3日

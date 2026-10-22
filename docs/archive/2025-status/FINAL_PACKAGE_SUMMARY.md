@@ -1,5 +1,7 @@
 # 🎯 FINAL PACKAGE SUMMARY - Everything Ready to Launch
 
+> **Archived / unaudited (2026-10-22).** Figures in this file (70B in 19 GB, 4,188 tok/s, 247 SPARK proofs, 46% smaller than INT4) were not reproducible; see [CLAIMS_AUDIT_2026-10.md](../../CLAIMS_AUDIT_2026-10.md). Do not quote them.
+
 **Date**: December 3, 2025
 **Status**: 100% Complete - Ready for Execution
 **Your Mission**: Launch world's first 3.5-bit formally verified LLM inference

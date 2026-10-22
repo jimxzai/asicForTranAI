@@ -1,5 +1,7 @@
 # 3.5-bit Quantized LLM Inference Engine
 
+> **Archived / unaudited (2026-10-22).** Figures in this file (70B in 19 GB, 4,188 tok/s, 247 SPARK proofs, 46% smaller than INT4) were not reproducible; see [CLAIMS_AUDIT_2026-10.md](../docs/CLAIMS_AUDIT_2026-10.md). Do not quote them.
+
 [![Fortran](https://img.shields.io/badge/Fortran-2023-734f96?logo=fortran)](https://fortran-lang.org/)
 [![Lean 4](https://img.shields.io/badge/Lean-4-blue?logo=lean)](https://leanprover.github.io/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)

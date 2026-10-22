@@ -1,5 +1,7 @@
 # 🚀 EXECUTE ALL - Complete Launch Checklist
 
+> **Archived / unaudited (2026-10-22).** Figures in this file (70B in 19 GB, 4,188 tok/s, 247 SPARK proofs, 46% smaller than INT4) were not reproducible; see [CLAIMS_AUDIT_2026-10.md](../../CLAIMS_AUDIT_2026-10.md). Do not quote them.
+
 **Status**: Ready to execute all actions
 **Time required**: 30-90 minutes depending on API setup
 **Date**: December 3, 2025

@@ -1,5 +1,7 @@
 # Career Transition Action Plan - Your Roadmap to $400K+/year
 
+> **Archived / unaudited (2026-10-22).** Figures in this file (70B in 19 GB, 4,188 tok/s, 247 SPARK proofs, 46% smaller than INT4) were not reproducible; see [CLAIMS_AUDIT_2026-10.md](../../docs/CLAIMS_AUDIT_2026-10.md). Do not quote them.
+
 **Goal**: Land Ada/SPARK or high-integrity AI role by Q2 2026
 **Target**: $300K-500K base + equity, remote-friendly, 3-4 day workweek
 **Timeline**: 3-6 months
