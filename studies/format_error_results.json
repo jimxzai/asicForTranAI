@@ -1,0 +1,92 @@
+{
+ "gaussian": {
+  "INT4 g128 (fp16 scale)": {
+   "bits_per_weight": 4.125,
+   "sqnr_db": 18.61
+  },
+  "INT4 g32  (fp16 scale)": {
+   "bits_per_weight": 4.5,
+   "sqnr_db": 20.26
+  },
+  "MXFP4 g32 (E8M0)": {
+   "bits_per_weight": 4.25,
+   "sqnr_db": 18.78
+  },
+  "NVFP4 g16 (E4M3)": {
+   "bits_per_weight": 4.5,
+   "sqnr_db": 20.44
+  },
+  "3.5-bit pair g32": {
+   "bits_per_weight": 4.0,
+   "sqnr_db": 12.2
+  },
+  "3.5-bit pair g128": {
+   "bits_per_weight": 3.625,
+   "sqnr_db": 13.45
+  },
+  "INT3 g128 (fp16 scale)": {
+   "bits_per_weight": 3.125,
+   "sqnr_db": 11.24
+  }
+ },
+ "student_t3 (heavy tail)": {
+  "INT4 g128 (fp16 scale)": {
+   "bits_per_weight": 4.125,
+   "sqnr_db": 13.07
+  },
+  "INT4 g32  (fp16 scale)": {
+   "bits_per_weight": 4.5,
+   "sqnr_db": 16.92
+  },
+  "MXFP4 g32 (E8M0)": {
+   "bits_per_weight": 4.25,
+   "sqnr_db": 17.16
+  },
+  "NVFP4 g16 (E4M3)": {
+   "bits_per_weight": 4.5,
+   "sqnr_db": 20.96
+  },
+  "3.5-bit pair g32": {
+   "bits_per_weight": 4.0,
+   "sqnr_db": 10.68
+  },
+  "3.5-bit pair g128": {
+   "bits_per_weight": 3.625,
+   "sqnr_db": 10.46
+  },
+  "INT3 g128 (fp16 scale)": {
+   "bits_per_weight": 3.125,
+   "sqnr_db": 7.29
+  }
+ },
+ "gaussian + 0.1% 10x outliers": {
+  "INT4 g128 (fp16 scale)": {
+   "bits_per_weight": 4.125,
+   "sqnr_db": 15.24
+  },
+  "INT4 g32  (fp16 scale)": {
+   "bits_per_weight": 4.5,
+   "sqnr_db": 18.89
+  },
+  "MXFP4 g32 (E8M0)": {
+   "bits_per_weight": 4.25,
+   "sqnr_db": 18.13
+  },
+  "NVFP4 g16 (E4M3)": {
+   "bits_per_weight": 4.5,
+   "sqnr_db": 20.45
+  },
+  "3.5-bit pair g32": {
+   "bits_per_weight": 4.0,
+   "sqnr_db": 11.53
+  },
+  "3.5-bit pair g128": {
+   "bits_per_weight": 3.625,
+   "sqnr_db": 11.76
+  },
+  "INT3 g128 (fp16 scale)": {
+   "bits_per_weight": 3.125,
+   "sqnr_db": 9.5
+  }
+ }
+}

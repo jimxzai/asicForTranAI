@@ -16,3 +16,6 @@ kernel3p5/build/
 __pycache__/
 *.pyc
 *.f90.[0-9][0-9][0-9][tr].*
+kernel3p5/*.mod
+kernel3p5/test_pack3p5
+kernel3p5/bench_matmul
