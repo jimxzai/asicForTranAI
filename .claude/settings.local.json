@@ -106,7 +106,8 @@
       "Bash(cargo check:*)",
       "Bash(cargo test:*)",
       "Bash(source \"$HOME/.cargo/env\")",
-      "Bash(cargo search:*)"
+      "Bash(cargo search:*)",
+      "Skill(update-config)"
     ],
     "deny": [],
     "ask": []
