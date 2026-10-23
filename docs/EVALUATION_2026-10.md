@@ -7,7 +7,7 @@ Scores are 0â€“10 and are my judgment against the rubric and evidence stated for
 | # | Dimension | Before | After | Evidence |
 |---|---|---|---|---|
 | 1 | Kernel correctness | 3 | 7 | Legacy 3.5-bit kernel stored 4 bits/weight and its model driver is dummy values. New reference kernels: exhaustive pack/unpack, bit-exact matmul vs integer/float64 references, bounds-checked. Not yet SIMD, no accuracy evaluation. |
-| 2 | Formal verification evidence | 1 | 5 | "247/247 proven" was hard-coded output; the Ada files never compiled; 37 Lean `sorry`. Now: GNATprove proves 40 checks on real SPARK code and `lean-kernel` proves the same bounds and the pair-code round-trip, both with negative controls and the tight int32 bound. Gap: proofs are about models of the Fortran, not the Fortran; layout, matmul structure, scales and accuracy are unproved. |
+| 2 | Formal verification evidence | 1 | 5 | "247/247 proven" was hard-coded output; the Ada files never compiled; 37 Lean `sorry`. Now: GNATprove proves 46 checks on real SPARK code and `lean-kernel` proves the same bounds and the pair-code round-trip, both with negative controls and the tight int32 bound. Gap: proofs are about models of the Fortran, not the Fortran; matmul structure, MXFP4 scales and accuracy are unproved. |
 | 3 | Alignment with industry formats | 2 | 5 | Industry moved to block-scaled FP4 (MXFP4/NVFP4) and vendor QAT checkpoints. MXFP4 reference kernel added (exact); NVFP4, FP8 and checkpoint loading (safetensors/GGUF) are not implemented. |
 | 4 | Performance and hardware coverage | 2 | 4 | Measured CPU numbers (below). Nothing measured on GPU, Groq, Cerebras or any accelerator; no comparison to llama.cpp or vendor kernels. |
 | 5 | Compiler and portability story | 3 | 3 | Scripts reference Flang/MLIR but neither tool is installed and nothing was run. Pure-Fortran kernels with a simple C ABI are portable in principle. Unchanged. |
@@ -68,7 +68,7 @@ Optimizations this session, all bit-exact: branch-free sign extension (3.5-bit â
 | Funded Lean/verification startups verify math and code, not numerics | Niche remains open; needs a machine-checked result to credibly claim it |
 
 ## Next engineering steps (priority order)
-1. ~~Install Lean and GNATprove and prove the pair round-trip and accumulator bounds~~ (done 2026-10-22). Next: prove the 16-weights-in-7-bytes layout (`pack_column`/`unpack_column`) and the MXFP4 scale handling, and decide how to tie the proofs to the Fortran source.
+1. ~~Install Lean and GNATprove and prove the pair round-trip and accumulator bounds~~ (done 2026-10-22). Layout proved 2026-10-22 (Lean `group_roundtrip`). Next: MXFP4 scale handling, the matmul loop structure, and tying the proofs to the Fortran source.
 2. Add NVFP4 (E4M3 block scale) reference kernel and tests; extend the format study to a real small model's weights.
 3. Add a SIMD (or `do concurrent`) variant of each kernel and re-measure; compare against llama.cpp on the same weights.
 4. Safetensors/GGUF reader; decide Rust vs Fortran for it using the rule above.

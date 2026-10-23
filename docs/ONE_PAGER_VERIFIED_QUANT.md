@@ -6,7 +6,7 @@
 
 **What exists today** (reproducible; commands in the repository):
 - Reference Fortran kernels for a 3.5-bit pair format and OCP MXFP4, tested bit-exact against integer / float64 references; exhaustive where the domain is finite.
-- GNATprove proves 40 checks on SPARK models of those kernels: int32-overflow-freedom for up to 2,097,151 terms (the bound is tight: one more term is unprovable), the MXFP4 block bound of 49,152, and encode/decode round-trip. The same facts are proved independently in Lean 4.
+- GNATprove proves 46 checks on SPARK models of those kernels: int32-overflow-freedom for up to 2,097,151 terms (the bound is tight: one more term is unprovable), the MXFP4 block bound of 49,152, and encode/decode round-trip. The same facts, plus the 16-weights-in-7-bytes packing layout, are proved independently in Lean 4 (the layout proof uses a SAT-based tactic whose certificate check is an added trusted component).
 - A numerical study of weight-quantization error across formats at honest bit budgets, and CPU timings with medians.
 
 **What it is not.**
