@@ -14,7 +14,7 @@ Evidence used: Hailo-10H supports INT4 and is AEC-Q100 Grade 2 qualified ([edge 
 | 4 | AMD (Taalas integration) | Fixed-weight silicon; pre-tape-out correctness is high stakes; deal closing Q4 2026 | Architect on the Taalas/AI-inference side (approach after close) | High, timing-dependent |
 | 5 | Etched | Transformer-specific ASIC; large raise reported Jan 2026 (aggregator) | Architecture / numerics lead | Med |
 | 6 | Tenstorrent | Open RISC-V AI stack; verification-minded culture | Software/numerics lead | Med |
-| 7 | Cerebras | Public, well funded, needs software ecosystem depth | Numerics / compiler team | Med |
+| 7 | Cerebras | Public and well funded, but a poor first customer: weights live in huge on-chip memory so compression matters less; FP8/FP4 inference support unconfirmed; no safety-critical demand found; business is hyperscale cloud and a few large customers. Value is credibility and learning. SDK and CSL are public with a simulator, so a bit-exact conformance demo is cheap. Contact developer relations only after that demo exists. | Developer relations; numerics / compiler team | Low-Med |
 | 8 | NXP (i.MX NPU / eIQ) | Embedded NPU in automotive and industrial parts | eIQ / ML software product owner | Med (check safety scope) |
 | 9 | Ambarella | AI vision SoCs for automotive and cameras | ML toolchain lead | Low-Med (check scope) |
 | 10 | NVIDIA (DRIVE / Jetson safety teams) | FP4/INT4 with ASIL-D claims; large and in-house, so low odds, but a reference customer if it lands | Functional-safety software lead | Low |
@@ -43,7 +43,7 @@ Evidence used: Hailo-10H supports INT4 and is AEC-Q100 Grade 2 qualified ([edge 
 | 20 | NSF SBIR | Research-grade topic: verified low-precision inference | Check current solicitation and email the program officer | Med |
 
 ## Notes
-- **Sequencing:** start with #1, #3, #6, #16, #18, #11: they are the most likely to answer and the most informative. Hold #4 until the AMD–Taalas close.
+- **Sequencing:** start with #1, #3, #6, #16, #18, #11 (edge-chip vendors first because they are memory-bound and ship INT4; Cerebras later, after a conformance demo): they are the most likely to answer and the most informative. Hold #4 until the AMD–Taalas close.
 - **Not verified:** ISO 26262 ratings and FP4/INT4 support for Axelera, SiMa.ai, NXP, Ambarella and Mobileye; the exact name and membership of the ED-324 committee; current DARPA program names. Check before the first email.
 - **Not on the list on purpose:** verification startups (Axiom, Harmonic and similar) are peers, not customers; Groq (remaining entity after the Nvidia license deal) is a cloud API, not a partner.
 - **Tone:** lead with the one-pager and reproducible commands, state the limits first, ask for 20 minutes.
