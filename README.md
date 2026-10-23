@@ -2,7 +2,7 @@
 
 Fortran reference kernels, formal proofs and tooling for **low-precision LLM inference you can check**.
 
-The goal is narrow: for quantized formats (a 3.5-bit pair format today; MXFP4/NVFP4 and INT4 next), provide kernels in Fortran together with machine-checked statements that they cannot overflow and stay within stated error bounds. Bit-width is a parameter, not the product. See the plan in [`docs/STRATEGY_2026_Q4.md`](docs/STRATEGY_2026_Q4.md).
+The goal is narrow: for quantized formats (a 3.5-bit pair format today; MXFP4/NVFP4 and INT4 next), provide kernels in Fortran together with machine-checked statements that they cannot overflow and stay within stated error bounds. Bit-width is a parameter, not the product. **Current focus and the 14-day test: [`docs/FOCUS_2026-10.md`](docs/FOCUS_2026-10.md).** Longer plan: [`docs/STRATEGY_2026_Q4.md`](docs/STRATEGY_2026_Q4.md).
 
 > **Status, 2026-10-22.** An audit of earlier claims ([`docs/CLAIMS_AUDIT_2026-10.md`](docs/CLAIMS_AUDIT_2026-10.md)) found that several headline numbers were wrong or unmeasured. Nothing below is claimed beyond what `make` reproduces.
 
