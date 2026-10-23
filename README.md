@@ -29,7 +29,7 @@ Latest local result (Intel i9-9980HK, gfortran 16.2, `-O3 -march=native`, one th
 - **Tool provenance**: the Alire GNATprove build is from an intermediate SPARK Pro commit, not a specific certified release.
 - **Accuracy**: no perplexity or task evaluation of 3.5-bit vs INT4 on a real model has been done.
 
-Re-run the full audit any time with `./scripts/claims_audit.sh`.
+Re-run the full audit any time with `./scripts/claims_audit.sh` (currently 0 failures: no old claim is left unmarked, and GNATprove and Lean run; this is not a statement that everything is verified).
 
 ## Quick start
 

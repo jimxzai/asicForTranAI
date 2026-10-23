@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# NOTE (2026-10-22): the throughput and size values plotted here are ILLUSTRATIVE, not measurements. Do not use these figures in a submission. See docs/CLAIMS_AUDIT_2026-10.md.
 """
 Generate figures for 3.5-bit quantization paper
 Creates publication-quality plots for:
@@ -66,7 +67,7 @@ def figure1_model_size():
 def figure2_throughput():
     """Figure 2: Throughput vs Precision on Groq LPU"""
     precisions = ['FP16\n(CPU)', 'INT8', 'INT4\n(AWQ)', '3.5-bit\n(Ours)']
-    throughput = [12, 1450, 3124, 4188]  # tokens/sec
+    throughput = [12, 1450, 3124, 4188]  # tokens/sec -- ILLUSTRATIVE, not measured
     colors = ['#d62728', '#ff7f0e', '#2ca02c', '#1f77b4']
 
     fig, ax = plt.subplots(figsize=(6, 4))

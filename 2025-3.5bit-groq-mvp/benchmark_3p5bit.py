@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
+# NOTE (2026-10-22): size, throughput and speed-up figures in this file were unaudited targets or estimates, not measurements. 70B at 3.5 bits/weight is ~31 GB of weights, not 19 GB. See docs/CLAIMS_AUDIT_2026-10.md. Reference code: kernel3p5/.
 """
 Benchmark: 3.5-bit vs INT4 Performance & Model Size Comparison
 World's first 3.5-bit quantization validation script
 
 Validates:
-1. Model size reduction: 70B @ 35GB (INT4) → 19GB (3.5-bit)
+1. Model size reduction: 70B @ ~35GB (INT4) → ~31GB (3.5-bit), weights only
 2. Quantization quality: Reconstruction error < 5%
-3. Expected performance: 4188 tok/s (28% faster than INT4's 3124 tok/s)
+3. Performance: not measured (speed-up vs INT4 unverified)
 
 Author: First global 3.5-bit implementation (2025-11-28)
 """
@@ -253,7 +254,7 @@ benchmark for LLaMA 70B inference on Groq ASIC.
 | Throughput          | 3124 t/s  | 4188 t/s  | **+{results['performance']['speedup_percent']:.1f}%** |
 | First token latency | 18 ms     | 15 ms     | -17%        |
 | Per-token latency   | 0.32 ms   | 0.24 ms   | -25%        |
-| Model size          | 35 GB     | 19 GB     | -46%        |
+| Model size          | 35 GB     | ~31 GB     | -12%        |
 | Power               | 41 W      | 38 W      | -7%         |
 
 ---
@@ -280,7 +281,7 @@ Groq LPU specs:
 - Weight transfer time per token: ~438 μs
 - Bottleneck: Memory bandwidth
 
-**3.5-bit (19 GB model):**
+**3.5-bit (~31 GB model):**
 - Weight transfer time per token: ~238 μs (**46% faster**)
 - Bottleneck: Memory bandwidth (improved)
 
@@ -313,8 +314,8 @@ end subroutine
 
 ## Conclusions
 
-1. **Model Size:** 3.5-bit reduces 70B model from **35 GB → 19 GB** (46% reduction)
-2. **Performance:** Expected **4188 tok/s** on Groq LPU (28% faster than INT4's 3124 tok/s)
+1. **Model Size:** 3.5-bit reduces 70B model from **35 GB → ~31 GB** (46% reduction)
+2. **Performance:** **Throughput not measured** on Groq LPU (speed-up vs INT4 unverified)
 3. **Quality:** Maintains < 5% reconstruction error (production-ready)
 4. **Power:** Estimated **38W** (7% lower than INT4's 41W)
 

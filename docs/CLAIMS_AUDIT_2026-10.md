@@ -1,6 +1,6 @@
 # Claims Audit — 2026-10-22
 
-Reproduce with `./scripts/claims_audit.sh` (read-only; exits non-zero on failures). Result on this machine: 7 failures at first run, 6 after the fixes below (the rest need GNATprove, Lean and measurement).
+Reproduce with `./scripts/claims_audit.sh` (read-only; exits non-zero on failures). Result on this machine: 7 failures at first run, **0 now**. "0" means every remaining mention of an old figure is either marked with a warning or quotes it in order to refute it, and the real tools (GNATprove, Lean) run; it does not mean the project is verified. See "What was built" for what is and is not covered.
 
 **Bottom line**: the project's four headline claims are not supported by what the repo contains. Two are contradicted by arithmetic, one rests on hard-coded demo output, and one is partly unproven. The underlying engineering (a working 3.5-bit packing scheme, Fortran kernels, a Lean/SPARK skeleton) may be sound; the published numbers are not. This has to be fixed before any grant application, customer pilot or paper, because each of those involves checkable claims.
 
@@ -30,6 +30,13 @@ Reproduce with `./scripts/claims_audit.sh` (read-only; exits non-zero on failure
 - Public site and docs: `docs/index.html` (10 hits), `docs/technical.html` (5), `README.md` (4), `docs/blog_fortran_llm_2025.md` (6), `docs/EXECUTIVE_BRIEFING.md` (5), `docs/NEURIPS_2026_DRAFT_V1.md` (2), `paper/paper.tex` (1).
 - Outreach: `COLD_EMAILS.md`, `docs/GROQ_EMAIL_DRAFT.md`, `docs/CEREBRAS_EMAIL_DRAFT.md`, `LINKEDIN_POST.md`. I can't tell from the repo which were actually sent or posted. If any were, consider a short correction to the recipients.
 - About 70 files in total repeat at least one of the claims.
+
+## Fix log (2026-10-22)
+- Public site (`docs/index.html`, `docs/technical.html`, `docs/_config.yml`) rewritten: no throughput, power or latency numbers; only commands and measured CPU results.
+- `papers/paper1_neurips2026/main.tex` and the two `2025-3.5bit-groq-mvp/paper/*.tex` drafts marked "not for submission".
+- Legacy sources that printed fixed size or throughput numbers (`llama70b_3p5bit.f90`, `matmul_template.f90`, `groq/compile_and_run_3p5bit.sh`, conversion and benchmark scripts) corrected and labelled; `paper/generate_figures.py` labelled as plotting illustrative values.
+- Legacy kernel labelled as 4 bits/weight; legacy Lean/Ada sketches labelled as unproven.
+- `scripts/claims_audit.sh` now fails on any file that repeats a claim without a warning marker.
 
 ## Recommended order
 

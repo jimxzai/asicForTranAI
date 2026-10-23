@@ -1,5 +1,6 @@
+! NOTE (2026-10-22): size, throughput and speed-up figures in this file were unaudited targets or estimates, not measurements. 70B at 3.5 bits/weight is ~31 GB of weights, not 19 GB. See docs/CLAIMS_AUDIT_2026-10.md. Reference code: kernel3p5/.
 ! Template: 3.5-bit Matrix Multiplication for Groq ASIC
-! Target: 4188 tok/s on Groq LPU for 70B inference
+! Target hardware: Groq LPU; throughput not measured
 ! Replace this template with your actual 47-line implementation
 
 module matmul_3_5bit
@@ -51,6 +52,6 @@ program test_groq_inference
 
     print *, "3.5-bit Groq ASIC Inference - Template"
     print *, "Replace this with your 47-line implementation"
-    print *, "Target: 4188 tok/s on Groq LPU"
+    print *, "Target hardware: Groq LPU (throughput not measured)"
 
 end program test_groq_inference

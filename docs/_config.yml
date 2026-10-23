@@ -3,7 +3,7 @@
 # Using custom HTML/CSS (no Jekyll theme)
 
 title: "3.5-bit Fortran ASIC AI"
-description: "World's first 3.5-bit dynamic asymmetric quantization for LLM inference in pure Fortran - achieving 4188 tok/s on Groq LPU"
+description: "Reference Fortran kernels and machine-checked proofs for low-precision LLM inference"
 author: "Jim Xiao & Claude Code (Anthropic)"
 url: "https://jimxzai.github.io"
 baseurl: "/asicForTranAI"

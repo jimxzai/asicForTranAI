@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
+# NOTE (2026-10-22): size, throughput and speed-up figures in this file were unaudited targets or estimates, not measurements. 70B at 3.5 bits/weight is ~31 GB of weights, not 19 GB. See docs/CLAIMS_AUDIT_2026-10.md. Reference code: kernel3p5/.
 """
 World's First 3.5-bit Dynamic Asymmetric Quantization Converter
 Converts FP16/FP32 weights to 3.5-bit packed format for Groq ASIC
 
-Model size reduction: 70B @ 140GB → 19GB (7.4x compression)
-Expected speedup: 28% over INT4 (4188 tok/s vs 3124 tok/s)
+Model size reduction: 70B @ 140GB → ~31GB of weights (~4.5x compression)
+Expected speedup: 28% over INT4 (throughput not measured vs 3124 tok/s)
 
 Author: First global 3.5-bit implementation (2025)
 """
@@ -157,7 +158,7 @@ def convert_safetensors_to_3p5bit(input_path: str, output_path: str):
     print(f"Estimated model size: {model_size_gb:.2f} GB")
     print(f"Output saved to: {output_file}")
     print(f"\nExpected performance on Groq LPU:")
-    print(f"  - Throughput: ~4188 tokens/sec (28% faster than INT4)")
+    print(f"  - Throughput: ~throughput not measured (speed-up vs INT4 unverified)")
     print(f"  - Model size: {model_size_gb:.1f}GB (vs 35GB INT4, 140GB FP16)")
     print(f"  - Memory bandwidth: 2.8x better than FP16")
     print(f"{'='*60}")
@@ -256,7 +257,7 @@ if __name__ == "__main__":
         print(f"  3.5-bit: {quantized_size_mb:.1f} MB")
         print(f"  Compression: {compression_ratio:.1f}x")
         print(f"\nFor full 70B model:")
-        print(f"  Estimated size: ~19 GB (vs 35GB INT4, 140GB FP16)")
+        print(f"  Estimated size: ~31 GB (vs 35GB INT4, 140GB FP16)")
         print("-" * 60)
         print("\nUsage: python convert_weights_3p5bit.py --input model.safetensors --output ./output")
     else:

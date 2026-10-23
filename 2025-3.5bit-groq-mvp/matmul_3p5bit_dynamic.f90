@@ -1,3 +1,4 @@
+! NOTE (2026-10-22): as written, W_Q(K/2,N) is int8, so this kernel stores one byte per pair of weights = 4 bits/weight, with no memory saving over INT4. Header figures (19GB, 4188 tok/s, 28% faster) were unaudited. True 3.5-bit packing (16 weights in 7 bytes) and tests are in kernel3p5/. See docs/CLAIMS_AUDIT_2026-10.md.
 ! ========================================
 ! WORLD'S FIRST 3.5-BIT FORTRAN IMPLEMENTATION
 ! Author: Jim Xiao & Claude Code (Anthropic)
@@ -5,9 +6,9 @@
 ! ========================================
 !
 ! 47-line Core: 3.5-bit Dynamic Asymmetric Quantization MatMul for Groq LPU
-! Target: 4188+ token/s on Groq WSE-3 (28% faster than INT4)
+! Target hardware: Groq WSE-3; throughput not measured (speed-up vs INT4 unverified)
 ! World's first 3.5-bit implementation in pure Fortran
-! Model size: 70B @ 19GB (vs 35GB for INT4)
+! Model size: 70B @ ~31GB of weights (vs 35GB for INT4)
 
 module matmul_3p5bit_groq
     use iso_c_binding, only: c_int8, c_int32, c_float
