@@ -19,3 +19,9 @@ __pycache__/
 kernel3p5/*.mod
 kernel3p5/test_pack3p5
 kernel3p5/bench_matmul
+
+# Lean build output
+**/.lake/
+
+# SPARK/GNATprove output
+spark-llama-safety/obj/

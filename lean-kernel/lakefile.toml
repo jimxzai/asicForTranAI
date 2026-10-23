@@ -1,0 +1,6 @@
+name = "LeanKernel"
+version = "0.1.0"
+defaultTargets = ["LeanKernel"]
+
+[[lean_lib]]
+name = "LeanKernel"

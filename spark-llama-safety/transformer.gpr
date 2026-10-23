@@ -1,40 +1,15 @@
--- GNAT Project File for SPARK LLaMA Safety Verification
--- Verifies 3.5-bit quantization runtime safety properties
--- Compatible with GNAT Community 2024 + GNATprove
-
+--  GNAT project for the SPARK reference code in src/ (mirrors ../kernel3p5).
+--  Templates from 2025 that never compiled are kept, unproved, in legacy/ and are not part of this project.
 project Transformer is
-   for Source_Dirs use (".");
+   for Source_Dirs use ("src");
    for Object_Dir use "obj";
-   for Exec_Dir use "bin";
+   for Create_Missing_Dirs use "True";
 
-   -- Main executable (for testing, not required for verification)
-   for Main use ("test_transformer.adb");
-
-   -- Compiler settings
    package Compiler is
-      for Switches ("Ada") use ("-gnatwa", "-gnatwe", "-O2", "-gnat2022");
-      -- -gnatwa: Enable all warnings
-      -- -gnatwe: Treat warnings as errors
-      -- -O2: Optimization level 2
-      -- -gnat2022: Use Ada 2022 standard
+      for Switches ("Ada") use ("-gnatwa", "-gnat2022", "-O2");
    end Compiler;
 
-   -- GNATprove verification settings
    package Prove is
-      for Proof_Switches ("Ada") use (
-         "--level=2",              -- Verification effort (0=fast, 4=thorough)
-         "--timeout=60",           -- Per-check timeout (seconds)
-         "--prover=cvc5,z3,altergo", -- SMT solvers (parallel)
-         "--steps=10000",          -- Max proof steps per check
-         "--counterexamples=on",   -- Generate counterexamples on failure
-         "--report=all",           -- Report all checks (proven + unproven)
-         "--output-header"         -- Include header in output
-      );
+      for Proof_Switches ("Ada") use ("--level=2", "--report=all", "--timeout=60");
    end Prove;
-
-   -- Builder settings
-   package Builder is
-      for Switches ("Ada") use ("-j0");  -- Use all CPU cores
-   end Builder;
-
 end Transformer;

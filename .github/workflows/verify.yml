@@ -35,7 +35,7 @@ jobs:
         alr -n toolchain --select gnat_native gprbuild
         alr -n install gnatprove
         echo "$HOME/.alire/bin" >> "$GITHUB_PATH"
-    - name: Run GNATprove (fails if any check is unproven)
+    - name: Run GNATprove (fails if any check is unproved). Same commands as docs/INSTALL_GNAT.md.
       run: make -C spark-llama-safety prove
 
   lean-proofs:
@@ -46,10 +46,10 @@ jobs:
     - uses: actions/checkout@v4
     - uses: leanprover/lean-action@v1
       with:
-        lake-package-directory: lean-verification
+        lake-package-directory: lean-kernel
     - name: Fail on sorry
       run: |
-        if grep -rn "sorry" --include='*.lean' lean-verification; then
+        if grep -rn "sorry" --include='*.lean' lean-kernel/LeanKernel lean-kernel/LeanKernel.lean; then
           echo "Unproven goals present"; exit 1
         fi
 
