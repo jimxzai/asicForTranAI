@@ -1,16 +1,17 @@
 #!/bin/bash
+# NOTE (2026-10-22): size, throughput and speed-up figures in this file were unaudited targets or estimates, not measurements. 70B at 3.5 bits/weight is ~31 GB of weights, not 19 GB. See docs/CLAIMS_AUDIT_2026-10.md. Reference code: kernel3p5/.
 # ========================================
 # WORLD'S FIRST 3.5-BIT DEPLOYMENT SCRIPT
-# LLaMA 70B @ 19GB, 4188+ tok/s on Groq ASIC
+# LLaMA 70B @ ~31GB of weights, throughput not measured on Groq ASIC
 # ========================================
 # Compile Fortran → MLIR → Deploy to Groq LPU
-# Target: 4188+ token/s (28% faster than INT4)
-# Model size: 19GB (46% smaller than INT4's 35GB)
+# Target: throughput not measured (speed-up vs INT4 unverified)
+# Model size: ~31GB (weights only; ~12% smaller than INT4's ~35GB)
 # Date: 2025-11-28 (Historic: 35 years from 1990 Fortran award)
 
 echo "========================================="
 echo "🚀 WORLD'S FIRST 3.5-BIT DEPLOYMENT"
-echo "   LLaMA 70B @ 19GB on Groq LPU"
+echo "   LLaMA 70B @ ~31GB of weights on Groq LPU"
 echo "========================================="
 echo ""
 echo "Innovation:"
@@ -19,8 +20,8 @@ echo "  ✓ Pure Fortran 2023 (no Python deps)"
 echo "  ✓ Direct ASIC mapping via MLIR"
 echo ""
 echo "Expected Performance:"
-echo "  • Speed: 4188+ tokens/sec (28% > INT4)"
-echo "  • Size: 19GB (46% smaller than INT4)"
+echo "  • Speed: throughput not measured (speed-up vs INT4 unverified)"
+echo "  • Size: ~31GB (46% smaller than INT4)"
 echo "  • Power: ~38W (7% lower than INT4)"
 echo "========================================="
 echo ""
@@ -202,7 +203,7 @@ if [ -n "$TOKENS" ] && [ "$TOKENS" != "N/A" ] && [ "$TOKENS" -gt 0 ]; then
     echo ""
     echo "Our 3.5-bit Fortran (projected):"
     echo "  • Expected Throughput: ~${EXPECTED_3P5BIT} tokens/sec (+28%)"
-    echo "  • Model Size: ~19GB (46% reduction)"
+    echo "  • Model Size: ~~31GB (46% reduction)"
     echo "  • Power: ~38W (7% reduction)"
 fi
 
@@ -214,7 +215,7 @@ echo "📊 3.5-bit vs INT4 Comparison:"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "                  INT4        3.5-bit     Improvement"
 echo "  Throughput:     3124 t/s    4188 t/s    +34%"
-echo "  Model Size:     35 GB       19 GB       -46%"
+echo "  Model Size:     35 GB       ~31 GB       -12%"
 echo "  Power:          41 W        38 W        -7%"
 echo "  First Token:    18 ms       15 ms       -17%"
 echo ""

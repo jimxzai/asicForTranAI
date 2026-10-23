@@ -1,499 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="World's first 3.5-bit dynamic asymmetric quantization for LLM inference in pure Fortran - achieving 4188 tok/s on Groq LPU">
-    <meta name="keywords" content="Fortran, ASIC, LLM, 3.5-bit quantization, Groq, AI inference, high-performance computing">
-    <meta name="author" content="Jim Xiao & Claude Code (Anthropic)">
-
-    <title>3.5-bit Fortran ASIC AI | World's First Implementation</title>
-
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        header {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 40px 20px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        .badge {
-            display: inline-block;
-            background: #ff6b6b;
-            color: white;
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        h1 {
-            font-size: 2.5em;
-            color: #2c3e50;
-            margin-bottom: 15px;
-        }
-
-        .subtitle {
-            font-size: 1.3em;
-            color: #7f8c8d;
-            margin-bottom: 10px;
-        }
-
-        .authors {
-            font-size: 1.1em;
-            color: #667eea;
-            font-weight: 600;
-            margin-top: 15px;
-        }
-
-        .date {
-            color: #95a5a6;
-            font-style: italic;
-        }
-
-        .hero-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin: 30px 0;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-value {
-            font-size: 2.5em;
-            font-weight: bold;
-            color: #667eea;
-            display: block;
-        }
-
-        .stat-label {
-            color: #7f8c8d;
-            font-size: 0.9em;
-            margin-top: 5px;
-        }
-
-        .section {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 40px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-        }
-
-        h2 {
-            color: #2c3e50;
-            margin-bottom: 20px;
-            font-size: 2em;
-            border-bottom: 3px solid #667eea;
-            padding-bottom: 10px;
-        }
-
-        .code-block {
-            background: #2c3e50;
-            color: #ecf0f1;
-            padding: 25px;
-            border-radius: 10px;
-            overflow-x: auto;
-            margin: 20px 0;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            line-height: 1.5;
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);
-        }
-
-        .code-comment {
-            color: #95a5a6;
-        }
-
-        .code-keyword {
-            color: #e74c3c;
-            font-weight: bold;
-        }
-
-        .code-function {
-            color: #3498db;
-        }
-
-        .code-type {
-            color: #f39c12;
-        }
-
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin: 30px 0;
-        }
-
-        .feature-card {
-            padding: 20px;
-            border-left: 4px solid #667eea;
-            background: #f8f9fa;
-            border-radius: 5px;
-        }
-
-        .feature-card h3 {
-            color: #667eea;
-            margin-bottom: 10px;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 15px 30px;
-            background: #667eea;
-            color: white;
-            text-decoration: none;
-            border-radius: 25px;
-            font-weight: bold;
-            margin: 10px;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn:hover {
-            background: #764ba2;
-            transform: translateY(-2px);
-            box-shadow: 0 7px 20px rgba(118, 75, 162, 0.4);
-        }
-
-        .btn-secondary {
-            background: #95a5a6;
-        }
-
-        .btn-secondary:hover {
-            background: #7f8c8d;
-        }
-
-        .timeline {
-            position: relative;
-            padding: 20px 0;
-        }
-
-        .timeline-item {
-            padding: 20px;
-            margin: 20px 0;
-            border-left: 3px solid #667eea;
-            padding-left: 30px;
-        }
-
-        .timeline-year {
-            color: #667eea;
-            font-weight: bold;
-            font-size: 1.2em;
-        }
-
-        footer {
-            text-align: center;
-            padding: 30px;
-            color: white;
-            margin-top: 40px;
-        }
-
-        .comparison-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-
-        .comparison-table th,
-        .comparison-table td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .comparison-table th {
-            background: #667eea;
-            color: white;
-        }
-
-        .comparison-table tr:hover {
-            background: #f8f9fa;
-        }
-
-        .highlight {
-            background: #fff3cd;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-weight: bold;
-        }
-
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 1.8em;
-            }
-            .hero-stats {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>asicForTranAI</title>
+<meta name="description" content="Reference Fortran kernels and machine-checked proofs for low-precision LLM inference. Every claim has a command.">
+<style>
+  :root { --bg:#fff; --fg:#1b1f24; --muted:#57606a; --line:#d0d7de; --accent:#0b5cad; --card:#f6f8fa; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0d1117; --fg:#e6edf3; --muted:#8b949e; --line:#30363d; --accent:#58a6ff; --card:#161b22; } }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif; }
+  main { max-width:820px; margin:0 auto; padding:32px 16px 64px; }
+  h1 { font-size:1.9rem; margin:0 0 4px; } h2 { font-size:1.2rem; margin:32px 0 8px; }
+  .sub { color:var(--muted); margin:0 0 24px; }
+  table { border-collapse:collapse; width:100%; font-size:.93rem; } th,td { border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top; }
+  th { background:var(--card); } code { background:var(--card); padding:1px 5px; border-radius:4px; font-size:.88em; }
+  a { color:var(--accent); } .note { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px 14px; }
+  .scroll { overflow-x:auto; }
+</style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="badge">🏆 WORLD'S FIRST · 2025-11-28</div>
-            <h1>3.5-bit Dynamic Asymmetric Quantization</h1>
-            <div class="subtitle">Pure Fortran 2023 → ASIC AI Inference @ 4188 tok/s</div>
-            <div class="authors">Jim Xiao & Claude Code (Anthropic)</div>
-            <div class="date">Historic: 35 years from 1990 Fortran award to 2025 ASIC AI</div>
-        </header>
+<main>
+<h1>asicForTranAI</h1>
+<p class="sub">Reference Fortran kernels and machine-checked proofs for low-precision LLM inference.</p>
 
-        <div class="hero-stats">
-            <div class="stat-card">
-                <span class="stat-value">3.5-bit</span>
-                <div class="stat-label">Quantization</div>
-            </div>
-            <div class="stat-card">
-                <span class="stat-value">4188</span>
-                <div class="stat-label">Tokens/sec</div>
-            </div>
-            <div class="stat-card">
-                <span class="stat-value">~31 GB</span>
-                <div class="stat-label">70B Model Size</div>
-            </div>
-            <div class="stat-card">
-                <span class="stat-value">41 W</span>
-                <div class="stat-label">Power Usage</div>
-            </div>
-        </div>
+<p>For quantized formats (a 3.5-bit pair format and OCP MXFP4 today; INT4 as baseline) the repository provides kernels together with proofs that they cannot overflow and that decoding inverts encoding. Bit-width is a parameter, not the product.</p>
 
-        <div class="section">
-            <h2>🚀 What Makes This Historic</h2>
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <h3>World's First 3.5-bit</h3>
-                    <p>First implementation of 3.5-bit dynamic asymmetric quantization for LLM inference - 28% faster than INT4 while maintaining quality.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>Pure Fortran 2023</h3>
-                    <p>Zero Python overhead. Direct MLIR compilation to ASIC. <code>do concurrent</code> maps perfectly to Groq hardware.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>ASIC-Native</h3>
-                    <p>Optimized for Groq LPU (WSE-3). 4188 tok/s on 70B model - production-grade performance.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>Minimal Footprint</h3>
-                    <p>70B parameters in about 31 GB of weights (vs about 35 GB for INT4). 79 lines of core code achieving state-of-the-art results.</p>
-                </div>
-            </div>
-        </div>
+<div class="note"><strong>Audited 2026-10-22.</strong> Earlier versions of this page and repository stated figures (70B in 19&nbsp;GB, 4,188&nbsp;tok/s, 247 proofs) that were wrong, unmeasured or not produced by a prover. They have been removed. <a href="https://github.com/jimxzai/asicForTranAI/blob/main/docs/CLAIMS_AUDIT_2026-10.md">Read the audit.</a></div>
 
-        <div class="section">
-            <h2>⚡ Performance Comparison</h2>
-            <table class="comparison-table">
-                <thead>
-                    <tr>
-                        <th>Metric</th>
-                        <th>Our 3.5-bit</th>
-                        <th>INT4 Baseline</th>
-                        <th>Improvement</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Throughput</td>
-                        <td class="highlight">4188 tok/s</td>
-                        <td>3100 tok/s</td>
-                        <td>+35%</td>
-                    </tr>
-                    <tr>
-                        <td>Model Size (70B)</td>
-                        <td class="highlight">~31 GB</td>
-                        <td>35 GB</td>
-                        <td>-12%</td>
-                    </tr>
-                    <tr>
-                        <td>First Token Latency</td>
-                        <td class="highlight">17 ms</td>
-                        <td>20 ms</td>
-                        <td>-15%</td>
-                    </tr>
-                    <tr>
-                        <td>Per-Token Latency</td>
-                        <td class="highlight">0.24 ms</td>
-                        <td>0.32 ms</td>
-                        <td>-25%</td>
-                    </tr>
-                    <tr>
-                        <td>Power Consumption</td>
-                        <td class="highlight">38 W</td>
-                        <td>41 W</td>
-                        <td>-7%</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+<h2>Checked today</h2>
+<div class="scroll"><table>
+<tr><th>Property</th><th>Result</th><th>Reproduce</th></tr>
+<tr><td>3.5-bit and MXFP4 reference kernels</td><td>Bit-exact against integer / float64 references; exhaustive where the domain is finite; storage exactly 3.5 and 4.25 bits/weight</td><td><code>make -C kernel3p5 test</code></td></tr>
+<tr><td>int32 accumulator cannot overflow (K ≤ 2,097,151; bound is tight); MXFP4 block sum ≤ 49,152</td><td>Proved in SPARK (GNATprove, 46 checks) and independently in Lean 4</td><td><code>make -C spark-llama-safety prove</code>, <code>cd lean-kernel &amp;&amp; lake build</code></td></tr>
+<tr><td>16 weights ↔ 7 bytes layout round-trips</td><td>Proved in Lean (SAT-based tactic; certificate check is an added trusted component)</td><td><code>cd lean-kernel &amp;&amp; lake build</code></td></tr>
+</table></div>
 
-        <div class="section">
-            <h2>💻 Core Implementation (79 lines)</h2>
-            <div class="code-block">
-<span class="code-comment">! ========================================
-! WORLD'S FIRST 3.5-BIT FORTRAN IMPLEMENTATION
-! Author: Jim Xiao & Claude Code (Anthropic)
-! Date: 2025-11-28
-! ========================================</span>
+<h2>Measured</h2>
+<p>One thread, scalar kernels, 4096×4096 matrix-vector product, Intel i9-9980HK, gfortran 16.2, median of 15. CPU only: this says nothing about GPUs, accelerators or model accuracy.</p>
+<div class="scroll"><table>
+<tr><th>Format</th><th>Time vs packed INT4</th><th>Weight bytes vs INT4</th></tr>
+<tr><td>Packed INT4 (baseline)</td><td>1.00 (13.3&nbsp;ms)</td><td>1.000</td></tr>
+<tr><td>3.5-bit pair format</td><td>1.20</td><td>0.875</td></tr>
+<tr><td>MXFP4 (exact)</td><td>1.17</td><td>1.063</td></tr>
+</table></div>
+<p>On synthetic heavy-tailed weights, MXFP4 has about 4&nbsp;dB better signal-to-quantization-noise than INT4 at similar bits, and the 3.5-bit pair format is worse than INT4 at equal bits (<code>python3 studies/format_error_study.py</code>).</p>
 
-<span class="code-keyword">module</span> <span class="code-function">matmul_3p5bit_groq</span>
-    <span class="code-keyword">use</span> iso_fortran_env, <span class="code-keyword">only</span>: int8, int32, real32
-    <span class="code-keyword">implicit none</span>
+<h2>Not established</h2>
+<ul>
+<li>The proofs cover models that mirror the Fortran, not the Fortran source itself.</li>
+<li>No accuracy evaluation on a real model; no GPU or accelerator measurements; no NVFP4 yet.</li>
+<li>The GNATprove used is an Alire build from an intermediate SPARK Pro commit, not a certified release.</li>
+</ul>
 
-<span class="code-keyword">contains</span>
-
-    <span class="code-comment">! Core 3.5-bit dynamic asymmetric matrix multiplication</span>
-    <span class="code-keyword">pure subroutine</span> <span class="code-function">matmul_3p5bit_awq</span>(A, W_Q, W_scales, W_offsets, C, M, N, K)
-        <span class="code-type">integer</span>(int32), <span class="code-keyword">intent(in)</span>, <span class="code-keyword">value</span> :: M, N, K
-        <span class="code-type">integer</span>(int8),  <span class="code-keyword">intent(in)</span>  :: A(M, K)
-        <span class="code-type">integer</span>(int8),  <span class="code-keyword">intent(in)</span>  :: W_Q(K/2, N)       <span class="code-comment">! 3.5-bit packed</span>
-        <span class="code-type">real</span>(real32),    <span class="code-keyword">intent(in)</span>  :: W_scales(N)
-        <span class="code-type">real</span>(real32),    <span class="code-keyword">intent(in)</span>  :: W_offsets(N)
-        <span class="code-type">integer</span>(int32), <span class="code-keyword">intent(out)</span> :: C(M, N)
-
-        <span class="code-type">integer</span>(int32) :: i, j, k, idx, raw7, n1, n2
-
-        <span class="code-comment">! Groq-optimized: maps to WSE-3 systolic array</span>
-        <span class="code-keyword">do concurrent</span>(j=1:N, i=1:M)
-            C(i,j) = 0
-            <span class="code-keyword">do</span> k = 1, K, 2
-                idx = (k + 1) / 2
-                raw7 = <span class="code-function">iand</span>(<span class="code-function">int</span>(W_Q(idx, j), int32), <span class="code-function">int</span>(z'7F', int32))
-
-                <span class="code-comment">! Decode 3.5-bit values</span>
-                n1 = <span class="code-function">ishft</span>(raw7, -3)
-                <span class="code-keyword">if</span> (n1 >= 8) n1 = n1 - 16
-
-                n2 = <span class="code-function">iand</span>(raw7, 7_int32)
-                <span class="code-keyword">if</span> (n2 >= 4) n2 = n2 - 8
-
-                <span class="code-comment">! Multiply-accumulate</span>
-                C(i,j) = C(i,j) + <span class="code-function">int</span>(A(i,k), int32) * n1
-                <span class="code-keyword">if</span> (k + 1 <= K) C(i,j) = C(i,j) + <span class="code-function">int</span>(A(i,k+1), int32) * n2
-            <span class="code-keyword">end do</span>
-        <span class="code-keyword">end do</span>
-    <span class="code-keyword">end subroutine</span>
-
-<span class="code-keyword">end module</span>
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>📈 35-Year Journey: 1990 → 2025</h2>
-            <div class="timeline">
-                <div class="timeline-item">
-                    <div class="timeline-year">1990</div>
-                    <p><strong>Fortran Numerical Methods Award</strong> - Recognition for high-performance scientific computing</p>
-                </div>
-                <div class="timeline-item">
-                    <div class="timeline-year">2000s</div>
-                    <p><strong>SGI ML Visualization</strong> - Early machine learning visualization on IRIX systems</p>
-                </div>
-                <div class="timeline-item">
-                    <div class="timeline-year">2023</div>
-                    <p><strong>Fortran 2023 Standard</strong> - Modern features like <code>do concurrent</code> for parallel computing</p>
-                </div>
-                <div class="timeline-item">
-                    <div class="timeline-year">2025-11-28</div>
-                    <p><strong>🏆 World's First 3.5-bit Implementation</strong> - Pure Fortran on ASIC achieving 4188 tok/s</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>🎯 Quick Start</h2>
-            <div class="code-block">
-<span class="code-comment"># Clone the repository</span>
-git clone https://github.com/jimxzai/asicForTranAI.git
-cd asicForTranAI/2025-3.5bit-groq-mvp
-
-<span class="code-comment"># Get free Groq API key at: https://console.groq.com</span>
-export GROQ_API_KEY='your_key_here'
-
-<span class="code-comment"># Run the demo (30 seconds to see 4188 tok/s)</span>
-cd groq && ./compile_and_run.sh
-
-<span class="code-comment"># Or compile locally with gfortran</span>
-gfortran -c matmul_3p5bit_dynamic.f90 -o matmul_3p5bit.o
-            </div>
-
-            <div style="text-align: center; margin-top: 30px;">
-                <a href="https://github.com/jimxzai/asicForTranAI" class="btn">View on GitHub</a>
-                <a href="https://console.groq.com" class="btn btn-secondary">Get Groq API Key</a>
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>📚 Technical Details</h2>
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <h3>3.5-bit Encoding</h3>
-                    <p>Two values packed in 7 bits: 4-bit (upper) + 3-bit (lower) with dynamic sign extension.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>Dynamic Asymmetric</h3>
-                    <p>Per-column scales and offsets for optimal quantization range adaptation.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>Groq LPU Target</h3>
-                    <p>WSE-3 with 8192 processing elements, systolic array architecture.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>MLIR Pipeline</h3>
-                    <p>Fortran → LFortran → MLIR → Groq compiler → ASIC binary.</p>
-                </div>
-            </div>
-        </div>
-
-        <footer>
-            <p><strong>World's First 3.5-bit Fortran ASIC AI Implementation</strong></p>
-            <p>© 2025 Jim Xiao & Claude Code (Anthropic)</p>
-            <p>35 years from 1990 Fortran award to 2025 ASIC AI renaissance</p>
-            <p style="margin-top: 20px; opacity: 0.8;">
-                <a href="https://github.com/jimxzai/asicForTranAI" style="color: white; text-decoration: none;">GitHub</a> ·
-                <a href="https://console.groq.com" style="color: white; text-decoration: none;">Groq</a> ·
-                <a href="https://fortran-lang.org" style="color: white; text-decoration: none;">Fortran</a>
-            </p>
-        </footer>
-    </div>
+<h2>Links</h2>
+<p><a href="https://github.com/jimxzai/asicForTranAI">Repository</a> ·
+<a href="https://github.com/jimxzai/asicForTranAI/blob/main/docs/ONE_PAGER_VERIFIED_QUANT.md">One-page summary</a> ·
+<a href="https://github.com/jimxzai/asicForTranAI/blob/main/docs/EVALUATION_2026-10.md">System evaluation</a> ·
+<a href="technical.html">Technical notes</a></p>
+</main>
 </body>
 </html>

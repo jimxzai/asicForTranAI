@@ -1,3 +1,4 @@
+--  NOTE (2026-10-22): template that never compiled; "247 checks" was never produced by GNATprove. See docs/CLAIMS_AUDIT_2026-10.md.
 -- Template: SPARK Ada specification for verified LLaMA inference
 -- Replace with your actual SPARK code that achieves 247 green checks
 

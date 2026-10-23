@@ -1,13 +1,14 @@
+! NOTE (2026-10-22): this driver is a skeleton with placeholder values (dummy embeddings, dummy layer output); it does not run a model, and the printed throughput/size lines are not measurements. See docs/CLAIMS_AUDIT_2026-10.md.
 ! ========================================
 ! WORLD'S FIRST 3.5-BIT 70B INFERENCE
-! LLaMA 70B @ 19GB, 4188+ token/s on Groq ASIC
+! LLaMA 70B @ ~31GB of weights, throughput not measured on Groq ASIC
 ! Pure Fortran 2023 - Zero Python Dependencies
 ! ========================================
 !
 ! Historic Achievement:
 !   - First 3.5-bit quantization in production (2025)
-!   - 70B params @ 19GB (vs 35GB INT4, 140GB FP16)
-!   - 4188 tok/s on Groq LPU (28% faster than INT4's 3124 tok/s)
+!   - 70B params @ ~31GB of weights (vs 35GB INT4, 140GB FP16)
+!   - throughput not measured on Groq LPU (speed-up vs INT4 unverified)
 !   - Power: ~38W (estimated, 7% lower than INT4's 41W)
 
 program llama70b_3p5bit_inference
@@ -52,13 +53,13 @@ program llama70b_3p5bit_inference
     print *, ""
     print *, "========================================================"
     print *, "   WORLD'S FIRST 3.5-BIT 70B INFERENCE"
-    print *, "   LLaMA 70B @ 19GB on Groq LPU"
+    print *, "   LLaMA 70B @ ~31GB of weights on Groq LPU"
     print *, "========================================================"
     print *, "Pure Fortran 2023 - No Python, No CUDA, No ONNX"
     print *, ""
     print *, "Performance Targets:"
-    print *, "  - Throughput: 4188+ tokens/sec (28% > INT4)"
-    print *, "  - Model size: 19GB (46% smaller than INT4's 35GB)"
+    print *, "  - Throughput: not measured (speed-up vs INT4 unverified)"
+    print *, "  - Model size: ~31GB (weights only; ~12% smaller than INT4's ~35GB)"
     print *, "  - First token: < 15ms"
     print *, "  - Power: ~38W"
     print *, "========================================================"
@@ -135,7 +136,7 @@ contains
         total_params_billions = 70
         print *, "      Model: LLaMA-", total_params_billions, "B"
         print *, "      Quantization: 3.5-bit dynamic asymmetric (AWQ)"
-        print *, "      Expected size: ~19 GB"
+        print *, "      Expected size: ~31 GB"
 
         ! TODO: Actual weight loading from safetensors
         ! This would read from: weights/llama-70b-awq-3p5bit-groq/model_3p5bit.safetensors

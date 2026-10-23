@@ -1,6 +1,7 @@
+-- NOTE (2026-10-22): size, throughput and speed-up figures in this file were unaudited targets or estimates, not measurements. 70B at 3.5 bits/weight is ~31 GB of weights, not 19 GB. See docs/CLAIMS_AUDIT_2026-10.md. Reference code: kernel3p5/.
 -- Formal Proof: 3.5-bit Quantization Correctness
 -- Proves mathematical properties of asymmetric 4+3 bit quantization
--- Used in LLaMA 70B model compression (19GB total)
+-- Used in LLaMA 70B model compression (~31GB total)
 
 import Mathlib.Data.Real.Basic
 import Mathlib.Data.Int.Range
@@ -189,7 +190,7 @@ axiom weight_quantization_accuracy (ε : ℝ) (hε : ε > 0) :
     ∃ (model_error : ℝ), model_error < ε
 
 /-- **COROLLARY**: 3.5-bit LLaMA 70B achieves <2% accuracy loss
-    Based on empirical results: 70B@19GB with 3.5-bit weights -/
+    Based on empirical results: 70B@~31GB with 3.5-bit weights -/
 theorem llama70b_accuracy_preserved :
     ∃ (error : ℝ), error < 0.02 ∧
     (∀ (pair : QuantizedPair),

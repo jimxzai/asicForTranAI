@@ -1,3 +1,4 @@
+-- NOTE (2026-10-22): templates with unproven goals; not evidence of any proved property. See ../../lean-kernel/ for proofs.
 /-!
 # Lean 4 Proof Templates for 3.5-bit Quantization
 
