@@ -7,7 +7,7 @@ Scores are 0–10 and are my judgment against the rubric and evidence stated for
 | # | Dimension | Before | After | Evidence |
 |---|---|---|---|---|
 | 1 | Kernel correctness | 3 | 7 | Legacy 3.5-bit kernel stored 4 bits/weight and its model driver is dummy values. New reference kernels: exhaustive pack/unpack, bit-exact matmul vs integer/float64 references, bounds-checked. Not yet SIMD, no accuracy evaluation. |
-| 2 | Formal verification evidence | 1 | 3 | "247/247 proven" was hard-coded output; 37 Lean `sorry`. Now honest: tight, tested accumulator bounds (int32 safe for K ≤ 2,097,151; MXFP4 block bound 49,152); ~900 lines of unproven Ada. No machine-checked proof exists yet. |
+| 2 | Formal verification evidence | 1 | 5 | "247/247 proven" was hard-coded output; the Ada files never compiled; 37 Lean `sorry`. Now: GNATprove proves 40 checks on real SPARK code and `lean-kernel` proves the same bounds and the pair-code round-trip, both with negative controls and the tight int32 bound. Gap: proofs are about models of the Fortran, not the Fortran; layout, matmul structure, scales and accuracy are unproved. |
 | 3 | Alignment with industry formats | 2 | 5 | Industry moved to block-scaled FP4 (MXFP4/NVFP4) and vendor QAT checkpoints. MXFP4 reference kernel added (exact); NVFP4, FP8 and checkpoint loading (safetensors/GGUF) are not implemented. |
 | 4 | Performance and hardware coverage | 2 | 4 | Measured CPU numbers (below). Nothing measured on GPU, Groq, Cerebras or any accelerator; no comparison to llama.cpp or vendor kernels. |
 | 5 | Compiler and portability story | 3 | 3 | Scripts reference Flang/MLIR but neither tool is installed and nothing was run. Pure-Fortran kernels with a simple C ABI are portable in principle. Unchanged. |
@@ -16,9 +16,9 @@ Scores are 0–10 and are my judgment against the rubric and evidence stated for
 | 8 | Security and supply chain | 5 | 5 | Secret scan of tracked files is clean (one example key in docs). No dependencies, no untrusted-input parsing yet. Gaps: root `LICENSE` missing though the README says MIT (a MIT file exists in `2025-3.5bit-groq-mvp/`); no SBOM; Llama license text tracked alongside weights policy. |
 | 9 | Repository structure | 2 | 6 | 551 tracked files incl. 150 build artifacts and 46 root status docs → 406 files, artifacts untracked, status docs archived, README rewritten. Still contains unrelated personal projects and a large legacy prototype. |
 | 10 | Market and strategy fit | 3 | 6 | Dec 2025 plan was stale (Groq partnership, "zero competitors"). New thesis: verification for low-precision inference; funded adjacent players found; SBIR open. No customer or pilot evidence yet. |
-| | **Average** | **2.5** | **5.2** | |
+| | **Average** | **2.5** | **5.4** | |
 
-Reaching 8/10 overall needs, in order: (a) a machine-checked proof of the accumulator bounds and of pack/unpack inverse (dimension 2 → 7), (b) a measured result on one real accelerator or GPU plus a comparison to an existing library (4 → 7), (c) accuracy evaluation of MXFP4 and the 3.5-bit format on a real small model (1 and 3 → 8), (d) one paid pilot (10 → 8).
+Reaching 8/10 overall needs, in order: (a) close the model-to-Fortran gap (prove the byte layout and matmul structure, or generate the Fortran from the verified model) (dimension 2 → 7), (b) a measured result on one real accelerator or GPU plus a comparison to an existing library (4 → 7), (c) accuracy evaluation of MXFP4 and the 3.5-bit format on a real small model (1 and 3 → 8), (d) one paid pilot (10 → 8).
 
 ## Findings that changed the design
 
@@ -68,7 +68,7 @@ Optimizations this session, all bit-exact: branch-free sign extension (3.5-bit �
 | Funded Lean/verification startups verify math and code, not numerics | Niche remains open; needs a machine-checked result to credibly claim it |
 
 ## Next engineering steps (priority order)
-1. Install Lean and GNATprove (`brew install elan-init`; Alire for GNAT) and prove: pack/unpack inverse, accumulator bounds, MXFP4 block bound. Replace tested claims with proved ones.
+1. ~~Install Lean and GNATprove and prove the pair round-trip and accumulator bounds~~ (done 2026-10-22). Next: prove the 16-weights-in-7-bytes layout (`pack_column`/`unpack_column`) and the MXFP4 scale handling, and decide how to tie the proofs to the Fortran source.
 2. Add NVFP4 (E4M3 block scale) reference kernel and tests; extend the format study to a real small model's weights.
 3. Add a SIMD (or `do concurrent`) variant of each kernel and re-measure; compare against llama.cpp on the same weights.
 4. Safetensors/GGUF reader; decide Rust vs Fortran for it using the rule above.

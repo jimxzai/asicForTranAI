@@ -26,29 +26,32 @@ grep -n 'Estimated on Groq' 2025-3.5bit-groq-mvp/benchmark_report_3p5bit.md >/de
 git grep -ln '4,188 tok/s measured' -- 2025-3.5bit-groq-mvp 2>/dev/null \
   | sed 's/^/  doc says "measured": /'
 
-echo "3. SPARK: '247/247 proofs discharged'"
-if grep -q 'placeholder' spark-llama-safety/Makefile 2>/dev/null; then
-  flag "spark-llama-safety/Makefile 'prove' and 'demo' targets are hard-coded echo output ('placeholder')"
-fi
-if grep -q 'TODO' .github/workflows/verify.yml 2>/dev/null; then
-  flag ".github/workflows/verify.yml SPARK step is TODOs and echo; CI never runs GNATprove"
-fi
-echo "  Ada/SPARK source: $(find spark-llama-safety -name '*.ad[sb]' | wc -l | tr -d ' ') files, $(find spark-llama-safety -name '*.ad[sb]' -exec cat {} + | wc -l | tr -d ' ') lines"
+export PATH="$HOME/.alire/bin:$HOME/.elan/bin:$(ls -d "$HOME"/.local/share/alire/toolchains/gnat_native_* 2>/dev/null | head -1)/bin:$(ls -d "$HOME"/.local/share/alire/toolchains/gprbuild_* 2>/dev/null | head -1)/bin:$PATH"
+
+echo "3. SPARK: proofs of the reference code in spark-llama-safety/src"
+echo "  Ada/SPARK source in src/: $(find spark-llama-safety/src -name '*.ad[sb]' | wc -l | tr -d ' ') files, $(find spark-llama-safety/src -name '*.ad[sb]' -exec cat {} + | wc -l | tr -d ' ') lines; unproved templates kept in legacy/"
+if grep -rq 'placeholder' spark-llama-safety/Makefile 2>/dev/null; then flag "SPARK Makefile contains placeholder output"; fi
+if grep -q 'TODO' .github/workflows/verify.yml 2>/dev/null; then flag "CI contains TODO stubs"; fi
 if command -v gnatprove >/dev/null 2>&1; then
-  echo "  gnatprove found; running (this is the real check)"
-  (cd spark-llama-safety && gnatprove -P transformer.gpr --level=2 --report=statistics 2>&1 | tail -15)
+  if gp=$(cd spark-llama-safety && gnatprove -P transformer.gpr --warnings=continue 2>&1); then
+    ok "$(echo "$gp" | grep -E 'Success: all checks proved')"
+  else
+    flag "gnatprove reports unproved checks or errors: $(echo "$gp" | tail -3 | tr '\n' ' ')"
+  fi
 else
-  flag "gnatprove not installed here, so the proof count cannot be reproduced"
+  flag "gnatprove not installed here (see docs/INSTALL_GNAT.md), so proofs cannot be reproduced"
 fi
 
-echo "4. Lean 4: 'proofs on quantization bounds'"
-sorries=$(git grep -c 'sorry' -- '*.lean' 2>/dev/null | awk -F: '{s+=$NF} END {print s+0}')
-echo "  'sorry' occurrences (unproven goals): $sorries"
-[ "$sorries" -gt 0 ] && flag "$sorries 'sorry' in Lean sources; those theorems are not proven"
+echo "4. Lean 4: lean-kernel (core Lean) and legacy directories"
+legacy=$(git grep -c 'sorry' -- 'lean-verification/*.lean' 'lean-alphaproof-mcts/*.lean' '2025-3.5bit-groq-mvp/lean-proofs/*.lean' 2>/dev/null | awk -F: '{s+=$NF} END {print s+0}')
+kern=$(git grep -c 'sorry' -- 'lean-kernel/*.lean' 2>/dev/null | awk -F: '{s+=$NF} END {print s+0}')
+echo "  'sorry' in lean-kernel: $kern; in legacy Lean directories: $legacy"
+[ "$legacy" -gt 0 ] && flag "$legacy 'sorry' in legacy Lean sources (lean-verification, lean-alphaproof-mcts, lean-proofs): not proofs"
+[ "$kern" -gt 0 ] && flag "$kern 'sorry' in lean-kernel"
 if command -v lake >/dev/null 2>&1; then
-  (cd lean-verification && lake build 2>&1 | tail -5)
+  if lb=$(cd lean-kernel && lake build 2>&1); then ok "lean-kernel builds: $(echo "$lb" | tail -1)"; else flag "lean-kernel build fails"; fi
 else
-  flag "lake/lean not installed here, so the Lean build cannot be reproduced"
+  flag "lake not installed here (see docs/INSTALL_GNAT.md), so Lean proofs cannot be reproduced"
 fi
 
 echo "5. Legacy kernel storage: '3.5-bit' format in matmul_3p5bit_dynamic.f90"
